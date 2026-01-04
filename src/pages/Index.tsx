@@ -1,12 +1,54 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useEffect } from 'react';
+import CustomCursor from '@/components/CustomCursor';
+import Navigation from '@/components/Navigation';
+import HeroSection from '@/components/HeroSection';
+import AboutSection from '@/components/AboutSection';
+import ExperienceSection from '@/components/ExperienceSection';
+import ServicesSection from '@/components/ServicesSection';
+import ProjectsSection from '@/components/ProjectsSection';
+import SkillsSection from '@/components/SkillsSection';
+import ContactSection from '@/components/ContactSection';
+import Footer from '@/components/Footer';
 
 const Index = () => {
+  useEffect(() => {
+    // Smooth scroll behavior for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const href = (e.currentTarget as HTMLAnchorElement).getAttribute('href');
+        if (href) {
+          document.querySelector(href)?.scrollIntoView({
+            behavior: 'smooth'
+          });
+        }
+      });
+    });
+  }, []);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
+      {/* Custom cursor - hidden on mobile */}
+      <div className="hidden md:block">
+        <CustomCursor />
       </div>
+
+      {/* Navigation */}
+      <Navigation />
+
+      {/* Main content */}
+      <main>
+        <HeroSection />
+        <AboutSection />
+        <ExperienceSection />
+        <ServicesSection />
+        <ProjectsSection />
+        <SkillsSection />
+        <ContactSection />
+      </main>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };
