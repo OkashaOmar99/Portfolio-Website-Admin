@@ -48,11 +48,16 @@ const HeroSection = () => {
             <h2 className="font-display text-lg sm:text-xl md:text-2xl text-primary glow-text mb-4">
               N8N AUTOMATION SPECIALIST
             </h2>
-            <p className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
+            <p className="text-muted-foreground text-base sm:text-lg max-w-3xl mx-auto leading-relaxed">
               Mastering N8N Automation: Turning Chaos into Seamless Workflows with{' '}
-              <span className="text-primary">Cursor</span>,{' '}
-              <span className="text-accent">Lovable</span>, and{' '}
-              <span className="text-primary">AntiGravity</span> Expertise.
+              <span className="text-primary">VAPI</span>,{' '}
+              <span className="text-accent">Retell</span>,{' '}
+              <span className="text-primary">Make.com</span>,{' '}
+              <span className="text-accent">Elevenlabs</span>,{' '}
+              <span className="text-primary">GoHighLevel</span>,{' '}
+              <span className="text-accent">Supabase</span>,{' '}
+              <span className="text-primary">Postgres/MySQL</span>, and{' '}
+              <span className="text-accent">Python</span> Expertise.
             </p>
           </motion.div>
 

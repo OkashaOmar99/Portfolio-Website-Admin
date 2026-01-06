@@ -9,6 +9,7 @@ import ProjectsSection from '@/components/ProjectsSection';
 import SkillsSection from '@/components/SkillsSection';
 import ContactSection from '@/components/ContactSection';
 import Footer from '@/components/Footer';
+import AutomationOracle from '@/components/AutomationOracle';
 
 const Index = () => {
   useEffect(() => {
@@ -49,6 +50,9 @@ const Index = () => {
 
       {/* Footer */}
       <Footer />
+
+      {/* Automation Oracle Widget */}
+      <AutomationOracle />
     </div>
   );
 };
