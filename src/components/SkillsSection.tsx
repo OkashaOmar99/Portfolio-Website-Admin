@@ -6,9 +6,20 @@ const skillCategories = [
     name: 'Automation Tools',
     skills: [
       { name: 'N8N', level: 98 },
-      { name: 'Cursor', level: 92 },
-      { name: 'Lovable', level: 95 },
-      { name: 'AntiGravity', level: 88 },
+      { name: 'VAPI', level: 95 },
+      { name: 'Retell', level: 92 },
+      { name: 'Make.com', level: 96 },
+      { name: 'Elevenlabs', level: 90 },
+      { name: 'GoHighLevel', level: 94 },
+    ],
+  },
+  {
+    name: 'Technical Stack',
+    skills: [
+      { name: 'Python', level: 92 },
+      { name: 'Supabase', level: 95 },
+      { name: 'Postgres/MySQL', level: 90 },
+      { name: 'API Integration', level: 96 },
     ],
   },
   {
@@ -18,15 +29,6 @@ const skillCategories = [
       { name: 'CRM', level: 94 },
       { name: 'Team Management', level: 88 },
       { name: 'Communication', level: 92 },
-    ],
-  },
-  {
-    name: 'Technical',
-    skills: [
-      { name: 'API Integration', level: 95 },
-      { name: 'SEO', level: 85 },
-      { name: 'Market Analysis', level: 88 },
-      { name: 'Process Design', level: 92 },
     ],
   },
 ];

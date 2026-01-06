@@ -1,6 +1,6 @@
 import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
-import { Workflow, Link2, BarChart3, Database, Users, GraduationCap } from 'lucide-react';
+import { Workflow, Mic, BarChart3, Database, Bot, Volume2 } from 'lucide-react';
 
 const services = [
   {
@@ -10,33 +10,33 @@ const services = [
     color: 'primary',
   },
   {
-    icon: Link2,
-    title: 'Custom Integrations',
-    description: 'Connect your favorite tools with Cursor, Lovable, and AntiGravity for powerful synergies.',
+    icon: Mic,
+    title: 'Voice AI with VAPI & Elevenlabs',
+    description: 'Build intelligent voice agents and text-to-speech solutions for customer interactions.',
     color: 'accent',
+  },
+  {
+    icon: Bot,
+    title: 'Conversational AI with Retell',
+    description: 'Create smart AI agents that handle customer conversations naturally and efficiently.',
+    color: 'primary',
   },
   {
     icon: BarChart3,
-    title: 'Marketing Automation',
-    description: 'Automate your marketing with LinkedIn Lead Gen and other powerful outreach strategies.',
-    color: 'primary',
-  },
-  {
-    icon: Database,
-    title: 'Data Scraping',
-    description: 'Extract valuable data from Reddit Jobs, LinkedIn, and more with intelligent scraping tools.',
+    title: 'GoHighLevel Marketing Automation',
+    description: 'Automate your marketing with powerful CRM, email campaigns, and lead generation.',
     color: 'accent',
   },
   {
-    icon: Users,
-    title: 'CRM Optimization',
-    description: 'Streamline your customer relationships with automated CRM workflows and integrations.',
+    icon: Database,
+    title: 'Database Solutions',
+    description: 'Build scalable backends with Supabase, Postgres, and MySQL for robust data management.',
     color: 'primary',
   },
   {
-    icon: GraduationCap,
-    title: 'Team Training',
-    description: 'Empower your team with comprehensive training on N8N and automation best practices.',
+    icon: Workflow,
+    title: 'Make.com & Python Scripts',
+    description: 'No-code automation with Make.com combined with custom Python scripts for complex logic.',
     color: 'accent',
   },
 ];

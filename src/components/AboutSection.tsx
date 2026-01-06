@@ -1,12 +1,16 @@
 import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
-import { Zap, Target, Rocket, Code } from 'lucide-react';
+import { Zap, Mic, Bot, Settings, Volume2, BarChart3, Database, Code } from 'lucide-react';
 
 const skills = [
+  { name: 'VAPI', icon: Mic },
+  { name: 'Retell', icon: Bot },
+  { name: 'Make.com', icon: Settings },
+  { name: 'Elevenlabs', icon: Volume2 },
+  { name: 'GoHighLevel', icon: BarChart3 },
+  { name: 'Supabase', icon: Database },
+  { name: 'Python', icon: Code },
   { name: 'N8N', icon: Zap },
-  { name: 'Cursor', icon: Code },
-  { name: 'Lovable', icon: Rocket },
-  { name: 'AntiGravity', icon: Target },
 ];
 
 const AboutSection = () => {
@@ -66,23 +70,23 @@ const AboutSection = () => {
                 />
               </div>
 
-              {/* Floating skill badges */}
-              {skills.map((skill, index) => (
+              {/* Floating skill badges - show first 4 on sides */}
+              {skills.slice(0, 4).map((skill, index) => (
                 <motion.div
                   key={skill.name}
-                  className="absolute skill-orb w-16 h-16 flex flex-col items-center justify-center"
+                  className="absolute skill-orb w-14 h-14 flex flex-col items-center justify-center"
                   style={{
-                    top: `${20 + index * 20}%`,
-                    left: index % 2 === 0 ? '-20px' : 'auto',
-                    right: index % 2 === 1 ? '-20px' : 'auto',
+                    top: `${15 + index * 22}%`,
+                    left: index % 2 === 0 ? '-16px' : 'auto',
+                    right: index % 2 === 1 ? '-16px' : 'auto',
                   }}
                   initial={{ opacity: 0, scale: 0 }}
                   animate={isInView ? { opacity: 1, scale: 1 } : {}}
                   transition={{ delay: 0.5 + index * 0.1, duration: 0.5 }}
                   whileHover={{ scale: 1.2 }}
                 >
-                  <skill.icon className="w-6 h-6 text-primary" />
-                  <span className="text-xs text-muted-foreground mt-1">{skill.name}</span>
+                  <skill.icon className="w-5 h-5 text-primary" />
+                  <span className="text-[10px] text-muted-foreground mt-1">{skill.name}</span>
                 </motion.div>
               ))}
             </div>
@@ -115,9 +119,14 @@ const AboutSection = () => {
                 in turning manual, time-consuming processes into efficient, automated workflows.
               </p>
               <p>
-                With hands-on experience in <span className="text-primary">Cursor</span> for AI-assisted coding, 
-                <span className="text-accent"> Lovable</span> for rapid prototyping, and 
-                <span className="text-primary"> AntiGravity</span> for advanced simulations, I transform 
+                With hands-on experience in <span className="text-primary">VAPI</span> for voice AI, 
+                <span className="text-accent"> Retell</span> for conversational agents,
+                <span className="text-primary"> Make.com</span> for no-code workflows,
+                <span className="text-accent"> Elevenlabs</span> for text-to-speech,
+                <span className="text-primary"> GoHighLevel</span> for marketing automation,
+                <span className="text-accent"> Supabase</span> for scalable backends,
+                <span className="text-primary"> Postgres/MySQL</span> for database handling, and
+                <span className="text-accent"> Python</span> for bespoke scripts, I transform 
                 complex business challenges into elegant automated solutions.
               </p>
             </div>
