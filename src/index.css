@@ -108,6 +108,7 @@
     content: '';
     @apply absolute inset-0 opacity-0 transition-opacity duration-500;
     background: var(--gradient-glow);
+    pointer-events: none;
   }
 
   .card-glow:hover::before {
@@ -138,6 +139,7 @@
     content: '';
     @apply absolute inset-0 opacity-0 transition-opacity duration-300;
     background: hsl(var(--accent));
+    pointer-events: none;
   }
 
   .hero-button:hover::before {
