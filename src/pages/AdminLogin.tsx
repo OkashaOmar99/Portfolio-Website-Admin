@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, forwardRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Lock, Mail, ArrowLeft } from 'lucide-react';
@@ -11,14 +11,15 @@ const authSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
-const AdminLogin = () => {
+const AdminLogin = forwardRef<HTMLDivElement>((_, ref) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   
-  const { signIn, user, isAdmin, isLoading } = useAuth();
+  const { signIn, signUp, user, isAdmin, isLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -48,26 +49,42 @@ const AdminLogin = () => {
 
     setIsSubmitting(true);
 
-    const { error } = await signIn(email, password);
-
-    if (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Authentication Failed',
-        description: error.message || 'Invalid credentials. Please try again.',
-      });
+    if (isSignUp) {
+      const { error } = await signUp(email, password);
+      if (error) {
+        toast({
+          variant: 'destructive',
+          title: 'Sign Up Failed',
+          description: error.message || 'Could not create account. Please try again.',
+        });
+      } else {
+        toast({
+          title: 'Account Created!',
+          description: 'You can now sign in. Note: Admin access requires manual role assignment.',
+        });
+        setIsSignUp(false);
+      }
     } else {
-      toast({
-        title: 'Welcome back!',
-        description: 'Redirecting to admin dashboard...',
-      });
+      const { error } = await signIn(email, password);
+      if (error) {
+        toast({
+          variant: 'destructive',
+          title: 'Authentication Failed',
+          description: error.message || 'Invalid credentials. Please try again.',
+        });
+      } else {
+        toast({
+          title: 'Welcome back!',
+          description: 'Redirecting to admin dashboard...',
+        });
+      }
     }
 
     setIsSubmitting(false);
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div ref={ref} className="min-h-screen bg-background flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -91,8 +108,12 @@ const AdminLogin = () => {
             >
               <Lock className="w-8 h-8 text-primary-foreground" />
             </motion.div>
-            <h1 className="font-display text-2xl font-bold text-foreground">Admin Access</h1>
-            <p className="text-muted-foreground mt-2">Sign in to manage your portfolio</p>
+            <h1 className="font-display text-2xl font-bold text-foreground">
+              {isSignUp ? 'Create Account' : 'Admin Access'}
+            </h1>
+            <p className="text-muted-foreground mt-2">
+              {isSignUp ? 'Sign up to get started' : 'Sign in to manage your portfolio'}
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -148,13 +169,23 @@ const AdminLogin = () => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              {isSubmitting ? 'Signing in...' : 'Sign In'}
+              {isSubmitting ? (isSignUp ? 'Creating...' : 'Signing in...') : (isSignUp ? 'Create Account' : 'Sign In')}
             </motion.button>
+
+            <button
+              type="button"
+              onClick={() => setIsSignUp(!isSignUp)}
+              className="w-full text-center text-sm text-muted-foreground hover:text-primary transition-colors"
+            >
+              {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
+            </button>
           </form>
         </div>
       </motion.div>
     </div>
   );
-};
+});
+
+AdminLogin.displayName = 'AdminLogin';
 
 export default AdminLogin;
