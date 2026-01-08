@@ -33,7 +33,7 @@ const AdminLogin = forwardRef<HTMLDivElement>((_, ref) => {
     setErrors({});
 
     try {
-      authSchema.parse({ email, password });
+      loginSchema.parse({ email, password });
     } catch (err) {
       if (err instanceof z.ZodError) {
         const fieldErrors: { email?: string; password?: string } = {};
