@@ -6,8 +6,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 
-const authSchema = z.object({
-  email: z.string().email('Invalid email address'),
+const loginSchema = z.object({
+  email: z.string().email('Please enter a valid email'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
@@ -16,10 +16,9 @@ const AdminLogin = forwardRef<HTMLDivElement>((_, ref) => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   
-  const { signIn, signUp, user, isAdmin, isLoading } = useAuth();
+  const { signIn, user, isAdmin, isLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -49,35 +48,18 @@ const AdminLogin = forwardRef<HTMLDivElement>((_, ref) => {
 
     setIsSubmitting(true);
 
-    if (isSignUp) {
-      const { error } = await signUp(email, password);
-      if (error) {
-        toast({
-          variant: 'destructive',
-          title: 'Sign Up Failed',
-          description: error.message || 'Could not create account. Please try again.',
-        });
-      } else {
-        toast({
-          title: 'Account Created!',
-          description: 'You can now sign in. Note: Admin access requires manual role assignment.',
-        });
-        setIsSignUp(false);
-      }
+    const { error } = await signIn(email, password);
+    if (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Authentication Failed',
+        description: error.message || 'Invalid credentials. Please try again.',
+      });
     } else {
-      const { error } = await signIn(email, password);
-      if (error) {
-        toast({
-          variant: 'destructive',
-          title: 'Authentication Failed',
-          description: error.message || 'Invalid credentials. Please try again.',
-        });
-      } else {
-        toast({
-          title: 'Welcome back!',
-          description: 'Redirecting to admin dashboard...',
-        });
-      }
+      toast({
+        title: 'Welcome back!',
+        description: 'Redirecting to admin dashboard...',
+      });
     }
 
     setIsSubmitting(false);
@@ -108,12 +90,8 @@ const AdminLogin = forwardRef<HTMLDivElement>((_, ref) => {
             >
               <Lock className="w-8 h-8 text-primary-foreground" />
             </motion.div>
-            <h1 className="font-display text-2xl font-bold text-foreground">
-              {isSignUp ? 'Create Account' : 'Admin Access'}
-            </h1>
-            <p className="text-muted-foreground mt-2">
-              {isSignUp ? 'Sign up to get started' : 'Sign in to manage your portfolio'}
-            </p>
+            <h1 className="font-display text-2xl font-bold text-foreground">Admin Access</h1>
+            <p className="text-muted-foreground mt-2">Sign in to manage your portfolio</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -169,16 +147,8 @@ const AdminLogin = forwardRef<HTMLDivElement>((_, ref) => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              {isSubmitting ? (isSignUp ? 'Creating...' : 'Signing in...') : (isSignUp ? 'Create Account' : 'Sign In')}
+              {isSubmitting ? 'Signing in...' : 'Sign In'}
             </motion.button>
-
-            <button
-              type="button"
-              onClick={() => setIsSignUp(!isSignUp)}
-              className="w-full text-center text-sm text-muted-foreground hover:text-primary transition-colors"
-            >
-              {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
-            </button>
           </form>
         </div>
       </motion.div>
