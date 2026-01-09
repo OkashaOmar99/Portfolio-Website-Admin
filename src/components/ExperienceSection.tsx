@@ -1,64 +1,39 @@
 import { motion, useInView } from 'framer-motion';
 import { useRef, useState } from 'react';
 import { Briefcase, MapPin, Calendar, ChevronRight } from 'lucide-react';
-
-const experiences = [
-  {
-    title: 'Team Lead Manager',
-    company: 'Alqaim Technology',
-    period: 'Jun 2024 - Present',
-    duration: '8 months',
-    location: 'Punjab, Pakistan',
-    type: 'Hybrid',
-    description: 'Driving vision, growth, and strategy; leading innovation in automation solutions.',
-    skills: ['Sales', 'Account Management', 'CRM', 'Automation', 'Team Management'],
-  },
-  {
-    title: 'N8N Automation Specialist',
-    company: 'Self-employed',
-    period: 'Sep 2023 - Present',
-    duration: '2 yrs 5 mos',
-    location: 'Lahore, Pakistan',
-    type: 'Remote',
-    description: 'Turning repetitive tasks into smooth workflows with N8N. Specializing in Reddit Job Scraping and LinkedIn Lead Gen Automation.',
-    skills: ['n8n', 'Automation', 'Marketing Automation', 'API Integration'],
-  },
-  {
-    title: 'Chief Executive Officer',
-    company: 'Velvuri',
-    period: 'Oct 2024 - Jun 2025',
-    duration: '9 months',
-    location: 'Lahore, Pakistan',
-    type: 'Hybrid',
-    description: 'Leading digital strategy and operations management for growth-focused ventures.',
-    skills: ['Digital Strategy', 'SEO', 'Operations Management', 'Market Research'],
-  },
-  {
-    title: 'Business Development Executive',
-    company: 'Drawphics',
-    period: 'Aug 2024 - Aug 2025',
-    duration: '1 yr 1 mo',
-    location: 'Lahore, Pakistan',
-    type: 'On-site',
-    description: 'Driving business growth through strategic partnerships and client relations.',
-    skills: ['Business Development', 'Sales', 'Graphic Design', 'Client Relations'],
-  },
-  {
-    title: 'Automation Lead',
-    company: 'Star Automation',
-    period: 'Apr 2023 - Jul 2024',
-    duration: '1 yr 4 mos',
-    location: 'Punjab, Pakistan',
-    type: 'Hybrid',
-    description: 'Leading automation initiatives and project management for enterprise clients.',
-    skills: ['Project Management', 'Automation', 'Process Optimization'],
-  },
-];
+import { useExperiences } from '@/hooks/useExperiences';
 
 const ExperienceSection = () => {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: '-100px' });
   const [expandedIndex, setExpandedIndex] = useState<number | null>(0);
+  const { experiences, isLoading } = useExperiences();
+
+  if (isLoading) {
+    return (
+      <section id="experience" className="py-24 md:py-32 relative overflow-hidden bg-secondary/20">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-16">
+            <span className="inline-block px-4 py-2 rounded-full bg-primary/10 text-primary font-display text-sm mb-6">
+              EXPERIENCE
+            </span>
+            <h2 className="section-title">
+              Professional <span className="text-gradient">Journey</span>
+            </h2>
+          </div>
+          <div className="max-w-4xl mx-auto space-y-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="card-glow rounded-xl p-6 animate-pulse">
+                <div className="h-6 bg-secondary/50 rounded w-1/3 mb-2" />
+                <div className="h-4 bg-secondary/50 rounded w-1/4 mb-4" />
+                <div className="h-3 bg-secondary/50 rounded w-full" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="experience" className="py-24 md:py-32 relative overflow-hidden bg-secondary/20">
@@ -80,7 +55,7 @@ const ExperienceSection = () => {
         <div className="max-w-4xl mx-auto">
           {experiences.map((exp, index) => (
             <motion.div
-              key={`${exp.company}-${exp.title}`}
+              key={exp.id}
               initial={{ opacity: 0, x: -50 }}
               animate={isInView ? { opacity: 1, x: 0 } : {}}
               transition={{ duration: 0.6, delay: index * 0.1 }}

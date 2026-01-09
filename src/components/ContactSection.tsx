@@ -23,8 +23,8 @@ const ContactSection = () => {
   };
 
   const socialLinks = [
-    { icon: Linkedin, href: 'https://linkedin.com/in/okashaomar', label: 'LinkedIn' },
-    { icon: Mail, href: 'mailto:okasha@example.com', label: 'Email' },
+    { icon: Linkedin, href: 'https://www.linkedin.com/in/okasha-umar-54391a21a', label: 'LinkedIn' },
+    { icon: Mail, href: 'mailto:okashaomar781@gmail.com', label: 'Email' },
   ];
 
   return (
