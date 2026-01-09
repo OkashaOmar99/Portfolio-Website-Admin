@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      experiences: {
+        Row: {
+          company: string
+          created_at: string
+          description: string
+          duration: string | null
+          id: string
+          location: string
+          period: string
+          skills: string[]
+          sort_order: number
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          company: string
+          created_at?: string
+          description: string
+          duration?: string | null
+          id?: string
+          location: string
+          period: string
+          skills?: string[]
+          sort_order?: number
+          title: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          company?: string
+          created_at?: string
+          description?: string
+          duration?: string | null
+          id?: string
+          location?: string
+          period?: string
+          skills?: string[]
+          sort_order?: number
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       portfolio_items: {
         Row: {
           created_at: string
@@ -23,6 +68,7 @@ export type Database = {
           images: string[]
           metrics: Json | null
           slug: string
+          sort_order: number
           techstack: string[]
           title: string
           updated_at: string
@@ -35,6 +81,7 @@ export type Database = {
           images?: string[]
           metrics?: Json | null
           slug: string
+          sort_order?: number
           techstack?: string[]
           title: string
           updated_at?: string
@@ -47,8 +94,39 @@ export type Database = {
           images?: string[]
           metrics?: Json | null
           slug?: string
+          sort_order?: number
           techstack?: string[]
           title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      skills: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          level: number
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          level?: number
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          level?: number
+          name?: string
+          sort_order?: number
           updated_at?: string
         }
         Relationships: []
