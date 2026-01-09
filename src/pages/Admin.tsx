@@ -1,18 +1,24 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit2, Trash2, LogOut, Home, Image, X, Save } from 'lucide-react';
+import { Plus, Edit2, Trash2, LogOut, Home, Image, X, GripVertical, ChevronUp, ChevronDown, Briefcase, Zap } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { usePortfolioItems, PortfolioItem } from '@/hooks/usePortfolioItems';
+import { useSkills, Skill } from '@/hooks/useSkills';
+import { useExperiences, Experience } from '@/hooks/useExperiences';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Admin = () => {
   const { user, isAdmin, isLoading, signOut } = useAuth();
-  const { items, createItem, updateItem, deleteItem } = usePortfolioItems();
+  const { items, createItem, updateItem, deleteItem, reorderItems } = usePortfolioItems();
+  const { skills, createSkill, updateSkill, deleteSkill, getCategories } = useSkills();
+  const { experiences, createExperience, updateExperience, deleteExperience, reorderExperiences } = useExperiences();
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Portfolio state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<PortfolioItem | null>(null);
   const [formData, setFormData] = useState({
@@ -25,12 +31,38 @@ const Admin = () => {
   const [uploadingImages, setUploadingImages] = useState(false);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
 
+  // Skills state
+  const [isSkillModalOpen, setIsSkillModalOpen] = useState(false);
+  const [editingSkill, setEditingSkill] = useState<Skill | null>(null);
+  const [skillFormData, setSkillFormData] = useState({
+    category: '',
+    name: '',
+    level: 80,
+    sort_order: 0,
+  });
+
+  // Experience state
+  const [isExpModalOpen, setIsExpModalOpen] = useState(false);
+  const [editingExp, setEditingExp] = useState<Experience | null>(null);
+  const [expFormData, setExpFormData] = useState({
+    title: '',
+    company: '',
+    period: '',
+    duration: '',
+    location: '',
+    type: 'Hybrid',
+    description: '',
+    skills: '',
+    sort_order: 0,
+  });
+
   useEffect(() => {
     if (!isLoading && (!user || !isAdmin)) {
       navigate('/admin-login');
     }
   }, [user, isAdmin, isLoading, navigate]);
 
+  // Portfolio functions
   const resetForm = () => {
     setFormData({
       title: '',
@@ -124,6 +156,7 @@ const Admin = () => {
           images: imageUrls,
           metrics: formData.metrics,
           featured: formData.featured,
+          sort_order: items.length + 1,
         });
         toast({ title: 'Success', description: 'Portfolio item created!' });
       }
@@ -153,6 +186,146 @@ const Admin = () => {
     }
   };
 
+  const movePortfolioItem = async (index: number, direction: 'up' | 'down') => {
+    const newItems = [...items];
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= newItems.length) return;
+    [newItems[index], newItems[newIndex]] = [newItems[newIndex], newItems[index]];
+    await reorderItems(newItems.map((item) => item.id));
+    toast({ title: 'Reordered', description: 'Portfolio order updated.' });
+  };
+
+  // Skills functions
+  const resetSkillForm = () => {
+    setSkillFormData({ category: '', name: '', level: 80, sort_order: 0 });
+    setEditingSkill(null);
+  };
+
+  const openSkillModal = (skill?: Skill) => {
+    if (skill) {
+      setEditingSkill(skill);
+      setSkillFormData({
+        category: skill.category,
+        name: skill.name,
+        level: skill.level,
+        sort_order: skill.sort_order,
+      });
+    } else {
+      resetSkillForm();
+    }
+    setIsSkillModalOpen(true);
+  };
+
+  const handleSkillSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (editingSkill) {
+        await updateSkill(editingSkill.id, skillFormData);
+        toast({ title: 'Success', description: 'Skill updated!' });
+      } else {
+        await createSkill({
+          ...skillFormData,
+          sort_order: skills.filter((s) => s.category === skillFormData.category).length + 1,
+        });
+        toast({ title: 'Success', description: 'Skill created!' });
+      }
+      setIsSkillModalOpen(false);
+      resetSkillForm();
+    } catch (err) {
+      toast({ variant: 'destructive', title: 'Error', description: (err as Error).message });
+    }
+  };
+
+  const handleSkillDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this skill?')) return;
+    try {
+      await deleteSkill(id);
+      toast({ title: 'Deleted', description: 'Skill removed.' });
+    } catch (err) {
+      toast({ variant: 'destructive', title: 'Error', description: (err as Error).message });
+    }
+  };
+
+  // Experience functions
+  const resetExpForm = () => {
+    setExpFormData({
+      title: '',
+      company: '',
+      period: '',
+      duration: '',
+      location: '',
+      type: 'Hybrid',
+      description: '',
+      skills: '',
+      sort_order: 0,
+    });
+    setEditingExp(null);
+  };
+
+  const openExpModal = (exp?: Experience) => {
+    if (exp) {
+      setEditingExp(exp);
+      setExpFormData({
+        title: exp.title,
+        company: exp.company,
+        period: exp.period,
+        duration: exp.duration || '',
+        location: exp.location,
+        type: exp.type,
+        description: exp.description,
+        skills: exp.skills.join(', '),
+        sort_order: exp.sort_order,
+      });
+    } else {
+      resetExpForm();
+    }
+    setIsExpModalOpen(true);
+  };
+
+  const handleExpSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const skillsArray = expFormData.skills.split(',').map((s) => s.trim()).filter(Boolean);
+    try {
+      if (editingExp) {
+        await updateExperience(editingExp.id, {
+          ...expFormData,
+          skills: skillsArray,
+        });
+        toast({ title: 'Success', description: 'Experience updated!' });
+      } else {
+        await createExperience({
+          ...expFormData,
+          skills: skillsArray,
+          sort_order: experiences.length + 1,
+        });
+        toast({ title: 'Success', description: 'Experience created!' });
+      }
+      setIsExpModalOpen(false);
+      resetExpForm();
+    } catch (err) {
+      toast({ variant: 'destructive', title: 'Error', description: (err as Error).message });
+    }
+  };
+
+  const handleExpDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this experience?')) return;
+    try {
+      await deleteExperience(id);
+      toast({ title: 'Deleted', description: 'Experience removed.' });
+    } catch (err) {
+      toast({ variant: 'destructive', title: 'Error', description: (err as Error).message });
+    }
+  };
+
+  const moveExperience = async (index: number, direction: 'up' | 'down') => {
+    const newExps = [...experiences];
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= newExps.length) return;
+    [newExps[index], newExps[newIndex]] = [newExps[newIndex], newExps[index]];
+    await reorderExperiences(newExps.map((exp) => exp.id));
+    toast({ title: 'Reordered', description: 'Experience order updated.' });
+  };
+
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
@@ -169,6 +342,8 @@ const Admin = () => {
       </div>
     );
   }
+
+  const categories = getCategories();
 
   return (
     <div className="min-h-screen bg-background">
@@ -200,89 +375,249 @@ const Admin = () => {
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8">
-        {/* Add Button */}
-        <motion.button
-          onClick={() => openModal()}
-          className="mb-8 flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-accent text-primary-foreground font-display font-bold rounded-lg"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <Plus size={20} />
-          Add Portfolio Item
-        </motion.button>
+        <Tabs defaultValue="portfolio" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 mb-8">
+            <TabsTrigger value="portfolio" className="flex items-center gap-2">
+              <Image size={16} />
+              Portfolio
+            </TabsTrigger>
+            <TabsTrigger value="skills" className="flex items-center gap-2">
+              <Zap size={16} />
+              Skills
+            </TabsTrigger>
+            <TabsTrigger value="experience" className="flex items-center gap-2">
+              <Briefcase size={16} />
+              Experience
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Items Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {items.map((item) => (
-            <motion.div
-              key={item.id}
-              layout
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="card-glow rounded-2xl overflow-hidden border border-border"
+          {/* Portfolio Tab */}
+          <TabsContent value="portfolio">
+            <motion.button
+              onClick={() => openModal()}
+              className="mb-8 flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-accent text-primary-foreground font-display font-bold rounded-lg"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
-              {item.images[0] && (
-                <div className="aspect-video bg-secondary/50">
-                  <img
-                    src={item.images[0]}
-                    alt={item.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-              <div className="p-6">
-                <h3 className="font-display text-lg font-bold text-foreground mb-2">
-                  {item.title}
-                </h3>
-                <p className="text-muted-foreground text-sm line-clamp-2 mb-4">
-                  {item.description}
-                </p>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {item.techstack.slice(0, 3).map((tech) => (
-                    <span
-                      key={tech}
-                      className="px-2 py-1 rounded-full bg-primary/10 text-primary text-xs"
+              <Plus size={20} />
+              Add Portfolio Item
+            </motion.button>
+
+            <div className="space-y-4">
+              {items.map((item, index) => (
+                <motion.div
+                  key={item.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="card-glow rounded-xl p-4 border border-border flex items-center gap-4"
+                >
+                  <div className="flex flex-col gap-1">
+                    <button
+                      onClick={() => movePortfolioItem(index, 'up')}
+                      disabled={index === 0}
+                      className="p-1 rounded hover:bg-secondary/50 disabled:opacity-30"
                     >
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-                <div className="flex gap-2">
-                  <motion.button
-                    onClick={() => openModal(item)}
-                    className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-secondary/50 text-foreground hover:bg-primary/20 transition-colors"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <Edit2 size={16} />
-                    Edit
-                  </motion.button>
-                  <motion.button
-                    onClick={() => handleDelete(item.id)}
-                    className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <Trash2 size={16} />
-                    Delete
-                  </motion.button>
+                      <ChevronUp size={16} />
+                    </button>
+                    <GripVertical size={16} className="text-muted-foreground" />
+                    <button
+                      onClick={() => movePortfolioItem(index, 'down')}
+                      disabled={index === items.length - 1}
+                      className="p-1 rounded hover:bg-secondary/50 disabled:opacity-30"
+                    >
+                      <ChevronDown size={16} />
+                    </button>
+                  </div>
+
+                  {item.images[0] && (
+                    <img src={item.images[0]} alt={item.title} className="w-20 h-20 object-cover rounded-lg" />
+                  )}
+
+                  <div className="flex-1">
+                    <h3 className="font-display font-bold text-foreground">{item.title}</h3>
+                    <p className="text-muted-foreground text-sm line-clamp-1">{item.description}</p>
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {item.techstack.slice(0, 3).map((tech) => (
+                        <span key={tech} className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs">
+                          {tech}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <motion.button
+                      onClick={() => openModal(item)}
+                      className="p-2 rounded-lg bg-secondary/50 text-foreground hover:bg-primary/20"
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      <Edit2 size={16} />
+                    </motion.button>
+                    <motion.button
+                      onClick={() => handleDelete(item.id)}
+                      className="p-2 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20"
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      <Trash2 size={16} />
+                    </motion.button>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            {items.length === 0 && (
+              <div className="text-center py-16">
+                <p className="text-muted-foreground">No portfolio items yet. Click "Add Portfolio Item" to create one.</p>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Skills Tab */}
+          <TabsContent value="skills">
+            <motion.button
+              onClick={() => openSkillModal()}
+              className="mb-8 flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-accent text-primary-foreground font-display font-bold rounded-lg"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Plus size={20} />
+              Add Skill
+            </motion.button>
+
+            {categories.map((category) => (
+              <div key={category} className="mb-8">
+                <h3 className="font-display text-lg font-bold text-primary mb-4">{category}</h3>
+                <div className="space-y-2">
+                  {skills
+                    .filter((s) => s.category === category)
+                    .map((skill) => (
+                      <motion.div
+                        key={skill.id}
+                        className="card-glow rounded-lg p-4 border border-border flex items-center justify-between"
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium text-foreground">{skill.name}</span>
+                            <span className="text-primary font-bold">{skill.level}%</span>
+                          </div>
+                          <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-gradient-to-r from-primary to-accent"
+                              style={{ width: `${skill.level}%` }}
+                            />
+                          </div>
+                        </div>
+                        <div className="flex gap-2 ml-4">
+                          <motion.button
+                            onClick={() => openSkillModal(skill)}
+                            className="p-2 rounded-lg bg-secondary/50 hover:bg-primary/20"
+                            whileHover={{ scale: 1.05 }}
+                          >
+                            <Edit2 size={14} />
+                          </motion.button>
+                          <motion.button
+                            onClick={() => handleSkillDelete(skill.id)}
+                            className="p-2 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20"
+                            whileHover={{ scale: 1.05 }}
+                          >
+                            <Trash2 size={14} />
+                          </motion.button>
+                        </div>
+                      </motion.div>
+                    ))}
                 </div>
               </div>
-            </motion.div>
-          ))}
-        </div>
+            ))}
 
-        {items.length === 0 && (
-          <div className="text-center py-16">
-            <p className="text-muted-foreground text-lg">
-              No portfolio items yet. Click "Add Portfolio Item" to create one.
-            </p>
-          </div>
-        )}
+            {skills.length === 0 && (
+              <div className="text-center py-16">
+                <p className="text-muted-foreground">No skills yet. Click "Add Skill" to create one.</p>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Experience Tab */}
+          <TabsContent value="experience">
+            <motion.button
+              onClick={() => openExpModal()}
+              className="mb-8 flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-accent text-primary-foreground font-display font-bold rounded-lg"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Plus size={20} />
+              Add Experience
+            </motion.button>
+
+            <div className="space-y-4">
+              {experiences.map((exp, index) => (
+                <motion.div
+                  key={exp.id}
+                  layout
+                  className="card-glow rounded-xl p-4 border border-border flex items-start gap-4"
+                >
+                  <div className="flex flex-col gap-1 pt-2">
+                    <button
+                      onClick={() => moveExperience(index, 'up')}
+                      disabled={index === 0}
+                      className="p-1 rounded hover:bg-secondary/50 disabled:opacity-30"
+                    >
+                      <ChevronUp size={16} />
+                    </button>
+                    <GripVertical size={16} className="text-muted-foreground" />
+                    <button
+                      onClick={() => moveExperience(index, 'down')}
+                      disabled={index === experiences.length - 1}
+                      className="p-1 rounded hover:bg-secondary/50 disabled:opacity-30"
+                    >
+                      <ChevronDown size={16} />
+                    </button>
+                  </div>
+
+                  <div className="flex-1">
+                    <h3 className="font-display font-bold text-foreground">{exp.title}</h3>
+                    <p className="text-primary font-medium">{exp.company}</p>
+                    <p className="text-muted-foreground text-sm">{exp.period} • {exp.location}</p>
+                    <p className="text-muted-foreground text-sm mt-2 line-clamp-2">{exp.description}</p>
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {exp.skills.slice(0, 4).map((skill) => (
+                        <span key={skill} className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs">
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <motion.button
+                      onClick={() => openExpModal(exp)}
+                      className="p-2 rounded-lg bg-secondary/50 hover:bg-primary/20"
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      <Edit2 size={16} />
+                    </motion.button>
+                    <motion.button
+                      onClick={() => handleExpDelete(exp.id)}
+                      className="p-2 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20"
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      <Trash2 size={16} />
+                    </motion.button>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            {experiences.length === 0 && (
+              <div className="text-center py-16">
+                <p className="text-muted-foreground">No experiences yet. Click "Add Experience" to create one.</p>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </main>
 
-      {/* Modal */}
+      {/* Portfolio Modal */}
       <AnimatePresence>
         {isModalOpen && (
           <motion.div
@@ -303,122 +638,86 @@ const Admin = () => {
                 <h2 className="font-display text-xl font-bold text-foreground">
                   {editingItem ? 'Edit Portfolio Item' : 'Add Portfolio Item'}
                 </h2>
-                <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="p-2 rounded-lg hover:bg-secondary/50 transition-colors"
-                >
+                <button onClick={() => setIsModalOpen(false)} className="p-2 rounded-lg hover:bg-secondary/50">
                   <X size={20} />
                 </button>
               </div>
 
               <form onSubmit={handleSubmit} className="p-6 space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Title
-                  </label>
+                  <label className="block text-sm font-medium text-foreground mb-2">Title</label>
                   <input
                     type="text"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-foreground"
+                    className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary focus:ring-1 focus:ring-primary outline-none text-foreground"
                     placeholder="Project title"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Description
-                  </label>
+                  <label className="block text-sm font-medium text-foreground mb-2">Description</label>
                   <textarea
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     rows={4}
-                    className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-foreground resize-none"
+                    className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary focus:ring-1 focus:ring-primary outline-none text-foreground resize-none"
                     placeholder="Describe the project..."
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Tech Stack (comma-separated)
-                  </label>
+                  <label className="block text-sm font-medium text-foreground mb-2">Tech Stack (comma-separated)</label>
                   <input
                     type="text"
                     value={formData.techstack}
                     onChange={(e) => setFormData({ ...formData, techstack: e.target.value })}
-                    className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-foreground"
+                    className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary focus:ring-1 focus:ring-primary outline-none text-foreground"
                     placeholder="N8N, VAPI, Python, Supabase"
                   />
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Time Saved
-                    </label>
+                    <label className="block text-sm font-medium text-foreground mb-2">Time Saved</label>
                     <input
                       type="text"
                       value={formData.metrics.timeSaved}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          metrics: { ...formData.metrics, timeSaved: e.target.value },
-                        })
-                      }
-                      className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-foreground"
+                      onChange={(e) => setFormData({ ...formData, metrics: { ...formData.metrics, timeSaved: e.target.value } })}
+                      className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary focus:ring-1 focus:ring-primary outline-none text-foreground"
                       placeholder="80%"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Leads/Month
-                    </label>
+                    <label className="block text-sm font-medium text-foreground mb-2">Leads/Month</label>
                     <input
                       type="text"
                       value={formData.metrics.leads}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          metrics: { ...formData.metrics, leads: e.target.value },
-                        })
-                      }
-                      className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-foreground"
+                      onChange={(e) => setFormData({ ...formData, metrics: { ...formData.metrics, leads: e.target.value } })}
+                      className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary focus:ring-1 focus:ring-primary outline-none text-foreground"
                       placeholder="500+"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      ROI
-                    </label>
+                    <label className="block text-sm font-medium text-foreground mb-2">ROI</label>
                     <input
                       type="text"
                       value={formData.metrics.roi}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          metrics: { ...formData.metrics, roi: e.target.value },
-                        })
-                      }
-                      className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-foreground"
+                      onChange={(e) => setFormData({ ...formData, metrics: { ...formData.metrics, roi: e.target.value } })}
+                      className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary focus:ring-1 focus:ring-primary outline-none text-foreground"
                       placeholder="3x"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Images
-                  </label>
+                  <label className="block text-sm font-medium text-foreground mb-2">Images</label>
                   <div className="flex flex-wrap gap-4 mb-4">
                     {imageUrls.map((url, index) => (
                       <div key={index} className="relative group">
-                        <img
-                          src={url}
-                          alt={`Upload ${index + 1}`}
-                          className="w-24 h-24 object-cover rounded-lg"
-                        />
+                        <img src={url} alt={`Upload ${index + 1}`} className="w-24 h-24 object-cover rounded-lg" />
                         <button
                           type="button"
                           onClick={() => removeImage(index)}
@@ -431,17 +730,8 @@ const Admin = () => {
                   </div>
                   <label className="flex items-center justify-center gap-2 py-4 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary transition-colors">
                     <Image size={20} className="text-muted-foreground" />
-                    <span className="text-muted-foreground">
-                      {uploadingImages ? 'Uploading...' : 'Click to upload images'}
-                    </span>
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                      disabled={uploadingImages}
-                    />
+                    <span className="text-muted-foreground">{uploadingImages ? 'Uploading...' : 'Click to upload images'}</span>
+                    <input type="file" multiple accept="image/*" onChange={handleImageUpload} className="hidden" disabled={uploadingImages} />
                   </label>
                 </div>
 
@@ -453,31 +743,235 @@ const Admin = () => {
                     onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
                     className="w-5 h-5 rounded border-border accent-primary"
                   />
-                  <label htmlFor="featured" className="text-foreground">
-                    Feature on homepage
-                  </label>
+                  <label htmlFor="featured" className="text-foreground">Feature on homepage</label>
                 </div>
 
-                <div className="flex gap-4">
-                  <motion.button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="flex-1 py-3 border border-border rounded-lg text-foreground hover:bg-secondary/50 transition-colors"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    Cancel
-                  </motion.button>
-                  <motion.button
-                    type="submit"
-                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-primary to-accent text-primary-foreground font-display font-bold rounded-lg"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <Save size={18} />
-                    {editingItem ? 'Update' : 'Create'}
-                  </motion.button>
+                <motion.button
+                  type="submit"
+                  className="w-full py-3 bg-gradient-to-r from-primary to-accent text-primary-foreground font-display font-bold rounded-lg"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  {editingItem ? 'Update Item' : 'Create Item'}
+                </motion.button>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Skill Modal */}
+      <AnimatePresence>
+        {isSkillModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm"
+            onClick={() => setIsSkillModalOpen(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="w-full max-w-md bg-card rounded-2xl border border-border shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6 border-b border-border flex items-center justify-between">
+                <h2 className="font-display text-xl font-bold">{editingSkill ? 'Edit Skill' : 'Add Skill'}</h2>
+                <button onClick={() => setIsSkillModalOpen(false)} className="p-2 rounded-lg hover:bg-secondary/50">
+                  <X size={20} />
+                </button>
+              </div>
+
+              <form onSubmit={handleSkillSubmit} className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Category</label>
+                  <input
+                    type="text"
+                    value={skillFormData.category}
+                    onChange={(e) => setSkillFormData({ ...skillFormData, category: e.target.value })}
+                    className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground"
+                    placeholder="Automation Tools"
+                    list="categories"
+                    required
+                  />
+                  <datalist id="categories">
+                    {categories.map((cat) => (
+                      <option key={cat} value={cat} />
+                    ))}
+                  </datalist>
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Name</label>
+                  <input
+                    type="text"
+                    value={skillFormData.name}
+                    onChange={(e) => setSkillFormData({ ...skillFormData, name: e.target.value })}
+                    className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground"
+                    placeholder="N8N"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Level ({skillFormData.level}%)</label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={skillFormData.level}
+                    onChange={(e) => setSkillFormData({ ...skillFormData, level: parseInt(e.target.value) })}
+                    className="w-full accent-primary"
+                  />
+                </div>
+
+                <motion.button
+                  type="submit"
+                  className="w-full py-3 bg-gradient-to-r from-primary to-accent text-primary-foreground font-display font-bold rounded-lg"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  {editingSkill ? 'Update Skill' : 'Create Skill'}
+                </motion.button>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Experience Modal */}
+      <AnimatePresence>
+        {isExpModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm"
+            onClick={() => setIsExpModalOpen(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-card rounded-2xl border border-border shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6 border-b border-border flex items-center justify-between">
+                <h2 className="font-display text-xl font-bold">{editingExp ? 'Edit Experience' : 'Add Experience'}</h2>
+                <button onClick={() => setIsExpModalOpen(false)} className="p-2 rounded-lg hover:bg-secondary/50">
+                  <X size={20} />
+                </button>
+              </div>
+
+              <form onSubmit={handleExpSubmit} className="p-6 space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Title</label>
+                    <input
+                      type="text"
+                      value={expFormData.title}
+                      onChange={(e) => setExpFormData({ ...expFormData, title: e.target.value })}
+                      className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground"
+                      placeholder="Team Lead Manager"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Company</label>
+                    <input
+                      type="text"
+                      value={expFormData.company}
+                      onChange={(e) => setExpFormData({ ...expFormData, company: e.target.value })}
+                      className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground"
+                      placeholder="Alqaim Technology"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Period</label>
+                    <input
+                      type="text"
+                      value={expFormData.period}
+                      onChange={(e) => setExpFormData({ ...expFormData, period: e.target.value })}
+                      className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground"
+                      placeholder="Jun 2024 - Present"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Duration</label>
+                    <input
+                      type="text"
+                      value={expFormData.duration}
+                      onChange={(e) => setExpFormData({ ...expFormData, duration: e.target.value })}
+                      className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground"
+                      placeholder="8 months"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Location</label>
+                    <input
+                      type="text"
+                      value={expFormData.location}
+                      onChange={(e) => setExpFormData({ ...expFormData, location: e.target.value })}
+                      className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground"
+                      placeholder="Punjab, Pakistan"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Type</label>
+                    <select
+                      value={expFormData.type}
+                      onChange={(e) => setExpFormData({ ...expFormData, type: e.target.value })}
+                      className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground"
+                    >
+                      <option value="Hybrid">Hybrid</option>
+                      <option value="Remote">Remote</option>
+                      <option value="On-site">On-site</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Description</label>
+                  <textarea
+                    value={expFormData.description}
+                    onChange={(e) => setExpFormData({ ...expFormData, description: e.target.value })}
+                    rows={3}
+                    className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground resize-none"
+                    placeholder="Describe your role..."
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Skills (comma-separated)</label>
+                  <input
+                    type="text"
+                    value={expFormData.skills}
+                    onChange={(e) => setExpFormData({ ...expFormData, skills: e.target.value })}
+                    className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground"
+                    placeholder="Sales, CRM, Automation"
+                  />
+                </div>
+
+                <motion.button
+                  type="submit"
+                  className="w-full py-3 bg-gradient-to-r from-primary to-accent text-primary-foreground font-display font-bold rounded-lg"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  {editingExp ? 'Update Experience' : 'Create Experience'}
+                </motion.button>
               </form>
             </motion.div>
           </motion.div>

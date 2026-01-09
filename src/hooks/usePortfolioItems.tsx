@@ -14,6 +14,7 @@ export interface PortfolioItem {
     roi: string;
   };
   featured: boolean;
+  sort_order: number;
   created_at: string;
   updated_at: string;
 }
@@ -28,6 +29,7 @@ export const usePortfolioItems = () => {
       const { data, error } = await supabase
         .from('portfolio_items')
         .select('*')
+        .order('sort_order')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -116,6 +118,14 @@ export const usePortfolioItems = () => {
     if (error) throw error;
   };
 
+  const reorderItems = async (orderedIds: string[]) => {
+    const updates = orderedIds.map((id, index) =>
+      supabase.from('portfolio_items').update({ sort_order: index + 1 }).eq('id', id)
+    );
+    await Promise.all(updates);
+    await fetchItems();
+  };
+
   return {
     items,
     isLoading,
@@ -123,6 +133,7 @@ export const usePortfolioItems = () => {
     createItem,
     updateItem,
     deleteItem,
+    reorderItems,
     refetch: fetchItems
   };
 };
