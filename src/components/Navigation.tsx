@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
+import { ThemeToggle } from './ThemeToggle';
 
 const navItems = [
   { label: 'Home', href: '#hero' },
@@ -79,23 +80,29 @@ const Navigation = () => {
               ))}
             </div>
 
-            {/* CTA Button */}
-            <motion.a
-              href="#contact"
-              className="hidden md:block hero-button text-sm"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <span className="relative z-10">Let's Talk</span>
-            </motion.a>
+            {/* Theme Toggle & CTA Button */}
+            <div className="hidden md:flex items-center gap-4">
+              <ThemeToggle />
+              <motion.a
+                href="#contact"
+                className="hero-button text-sm"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <span className="relative z-10">Let's Talk</span>
+              </motion.a>
+            </div>
 
             {/* Mobile Menu Toggle */}
-            <button
-              className="md:hidden p-2 text-foreground"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
+            <div className="flex md:hidden items-center gap-2">
+              <ThemeToggle />
+              <button
+                className="p-2 text-foreground"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              >
+                {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
+            </div>
           </div>
         </div>
       </motion.nav>
