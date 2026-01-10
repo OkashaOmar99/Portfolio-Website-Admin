@@ -1,6 +1,8 @@
 import { motion, useInView } from 'framer-motion';
 import { useRef, useState } from 'react';
-import { Send, Linkedin, Mail, MapPin, CheckCircle } from 'lucide-react';
+import { Send, Linkedin, Mail, MapPin, CheckCircle, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const ContactSection = () => {
   const ref = useRef<HTMLDivElement>(null);
@@ -10,16 +12,32 @@ const ContactSection = () => {
     email: '',
     message: '',
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate form submission
-    setIsSubmitted(true);
-    setTimeout(() => {
-      setIsSubmitted(false);
-      setFormState({ name: '', email: '', message: '' });
-    }, 3000);
+    setIsSubmitting(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('send-contact-email', {
+        body: formState,
+      });
+
+      if (error) throw error;
+
+      setIsSubmitted(true);
+      toast.success('Message sent successfully!');
+      setTimeout(() => {
+        setIsSubmitted(false);
+        setFormState({ name: '', email: '', message: '' });
+      }, 3000);
+    } catch (error: any) {
+      console.error('Error sending message:', error);
+      toast.error('Failed to send message. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const socialLinks = [
@@ -118,12 +136,17 @@ const ContactSection = () => {
                 className="w-full hero-button flex items-center justify-center gap-3"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                disabled={isSubmitted}
+                disabled={isSubmitting || isSubmitted}
               >
                 {isSubmitted ? (
                   <>
                     <CheckCircle className="w-5 h-5" />
                     <span className="relative z-10">Message Sent!</span>
+                  </>
+                ) : isSubmitting ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span className="relative z-10">Sending...</span>
                   </>
                 ) : (
                   <>
