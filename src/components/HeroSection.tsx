@@ -9,7 +9,8 @@ const stats = [
 ];
 
 const HeroSection = () => {
-  const titleChars = "OKASHA OMAR".split('');
+  const firstLine = "OKASHA".split('');
+  const secondLine = "OMAR".split('');
 
   return (
     <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -19,8 +20,9 @@ const HeroSection = () => {
         <div className="max-w-5xl mx-auto text-center">
           {/* Animated title */}
           <motion.div className="mb-6 overflow-hidden">
-            <motion.div className="flex justify-center flex-wrap gap-2 md:gap-4">
-              {titleChars.map((char, index) => (
+            {/* First line - OKASHA */}
+            <motion.div className="flex justify-center flex-wrap gap-2 md:gap-4 mb-2">
+              {firstLine.map((char, index) => (
                 <motion.span
                   key={index}
                   className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black text-gradient inline-block"
@@ -32,7 +34,25 @@ const HeroSection = () => {
                     ease: [0.6, -0.05, 0.01, 0.99],
                   }}
                 >
-                  {char === ' ' ? '\u00A0' : char}
+                  {char}
+                </motion.span>
+              ))}
+            </motion.div>
+            {/* Second line - OMAR */}
+            <motion.div className="flex justify-center flex-wrap gap-2 md:gap-4">
+              {secondLine.map((char, index) => (
+                <motion.span
+                  key={index}
+                  className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black text-gradient inline-block"
+                  initial={{ y: 100, opacity: 0, rotateX: -90 }}
+                  animate={{ y: 0, opacity: 1, rotateX: 0 }}
+                  transition={{
+                    duration: 0.8,
+                    delay: (firstLine.length + index) * 0.05,
+                    ease: [0.6, -0.05, 0.01, 0.99],
+                  }}
+                >
+                  {char}
                 </motion.span>
               ))}
             </motion.div>
