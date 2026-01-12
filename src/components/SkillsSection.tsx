@@ -47,7 +47,7 @@ const SkillsSection = () => {
       <div className="container mx-auto px-6" ref={ref}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
@@ -65,7 +65,7 @@ const SkillsSection = () => {
             <motion.div
               key={categoryName}
               initial={{ opacity: 0, y: 30 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: categoryIndex * 0.2 }}
               className="card-glow rounded-2xl p-6 border border-border"
             >
@@ -78,7 +78,7 @@ const SkillsSection = () => {
                   <motion.div
                     key={skill.id}
                     initial={{ opacity: 0, x: -20 }}
-                    animate={isInView ? { opacity: 1, x: 0 } : {}}
+                    animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.4, delay: categoryIndex * 0.2 + skillIndex * 0.1 }}
                   >
                     <div className="flex justify-between mb-2">
@@ -89,7 +89,7 @@ const SkillsSection = () => {
                       <motion.div
                         className="h-full rounded-full bg-gradient-to-r from-primary to-accent"
                         initial={{ width: 0 }}
-                        animate={isInView ? { width: `${skill.level}%` } : {}}
+                        animate={{ width: `${skill.level}%` }}
                         transition={{ duration: 1, delay: categoryIndex * 0.2 + skillIndex * 0.1 + 0.5 }}
                       />
                     </div>
