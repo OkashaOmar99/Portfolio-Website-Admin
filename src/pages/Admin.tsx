@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit2, Trash2, LogOut, Home, Image, X, GripVertical, ChevronUp, ChevronDown, Briefcase, Zap } from 'lucide-react';
+import { Plus, Edit2, Trash2, LogOut, Home, Image, X, GripVertical, ChevronUp, ChevronDown, Briefcase, Zap, Settings, Upload } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { usePortfolioItems, PortfolioItem } from '@/hooks/usePortfolioItems';
 import { useSkills, Skill } from '@/hooks/useSkills';
@@ -9,12 +9,14 @@ import { useExperiences, Experience } from '@/hooks/useExperiences';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 const Admin = () => {
   const { user, isAdmin, isLoading, signOut } = useAuth();
   const { items, createItem, updateItem, deleteItem, reorderItems } = usePortfolioItems();
   const { skills, createSkill, updateSkill, deleteSkill, getCategories } = useSkills();
   const { experiences, createExperience, updateExperience, deleteExperience, reorderExperiences } = useExperiences();
+  const { getSetting, updateSetting } = useSiteSettings();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -55,6 +57,10 @@ const Admin = () => {
     skills: '',
     sort_order: 0,
   });
+
+  // Site settings state
+  const [uploadingProfileImage, setUploadingProfileImage] = useState(false);
+  const profileImage = getSetting('profile_image');
 
   useEffect(() => {
     if (!isLoading && (!user || !isAdmin)) {
@@ -331,6 +337,49 @@ const Admin = () => {
     navigate('/');
   };
 
+  // Profile image upload handler
+  const handleProfileImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingProfileImage(true);
+    try {
+      const fileName = `profile-${Date.now()}-${file.name}`;
+      const { data, error } = await supabase.storage
+        .from('portfolio-images')
+        .upload(fileName, file);
+
+      if (error) throw error;
+
+      const { data: urlData } = supabase.storage
+        .from('portfolio-images')
+        .getPublicUrl(data.path);
+
+      await updateSetting('profile_image', urlData.publicUrl);
+      toast({ title: 'Success', description: 'Profile image updated!' });
+    } catch (err) {
+      toast({
+        variant: 'destructive',
+        title: 'Upload Failed',
+        description: (err as Error).message,
+      });
+    }
+    setUploadingProfileImage(false);
+  };
+
+  const handleRemoveProfileImage = async () => {
+    try {
+      await updateSetting('profile_image', null);
+      toast({ title: 'Removed', description: 'Profile image removed.' });
+    } catch (err) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: (err as Error).message,
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -376,7 +425,7 @@ const Admin = () => {
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8">
         <Tabs defaultValue="portfolio" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-8">
+          <TabsList className="grid w-full grid-cols-4 mb-8">
             <TabsTrigger value="portfolio" className="flex items-center gap-2">
               <Image size={16} />
               Portfolio
@@ -388,6 +437,10 @@ const Admin = () => {
             <TabsTrigger value="experience" className="flex items-center gap-2">
               <Briefcase size={16} />
               Experience
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2">
+              <Settings size={16} />
+              Settings
             </TabsTrigger>
           </TabsList>
 
@@ -613,6 +666,73 @@ const Admin = () => {
                 <p className="text-muted-foreground">No experiences yet. Click "Add Experience" to create one.</p>
               </div>
             )}
+          </TabsContent>
+
+          {/* Settings Tab */}
+          <TabsContent value="settings">
+            <div className="max-w-2xl">
+              <h2 className="font-display text-xl font-bold text-foreground mb-6">Site Settings</h2>
+              
+              {/* Profile Image Upload */}
+              <div className="card-glow rounded-xl p-6 border border-border">
+                <h3 className="font-display font-bold text-foreground mb-4">Profile Image</h3>
+                <p className="text-muted-foreground text-sm mb-4">
+                  This image will appear in the About section of your portfolio.
+                </p>
+                
+                <div className="flex items-start gap-6">
+                  {/* Current Image Preview */}
+                  <div className="w-40 h-40 rounded-xl border border-border overflow-hidden bg-secondary/50 flex items-center justify-center">
+                    {profileImage ? (
+                      <img 
+                        src={profileImage} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="text-center text-muted-foreground">
+                        <Upload size={32} className="mx-auto mb-2 opacity-50" />
+                        <span className="text-xs">No image</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Upload Controls */}
+                  <div className="flex-1 space-y-4">
+                    <label className="flex items-center justify-center gap-2 py-4 px-6 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary transition-colors">
+                      <Upload size={20} className="text-muted-foreground" />
+                      <span className="text-muted-foreground">
+                        {uploadingProfileImage ? 'Uploading...' : 'Upload new image'}
+                      </span>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={handleProfileImageUpload} 
+                        className="hidden" 
+                        disabled={uploadingProfileImage} 
+                      />
+                    </label>
+                    
+                    {profileImage && (
+                      <motion.button
+                        type="button"
+                        onClick={handleRemoveProfileImage}
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <Trash2 size={16} />
+                        Remove Image
+                      </motion.button>
+                    )}
+                    
+                    <p className="text-xs text-muted-foreground">
+                      Recommended: Square image, at least 400x400 pixels. JPG or PNG format.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </main>
