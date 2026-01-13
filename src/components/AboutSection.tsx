@@ -1,6 +1,7 @@
 import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
-import { Zap, Mic, Bot, Settings, Volume2, BarChart3, Database, Code } from 'lucide-react';
+import { Zap, Mic, Bot, Settings, Volume2, BarChart3, Database, Code, User } from 'lucide-react';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 const skills = [
   { name: 'VAPI', icon: Mic },
@@ -16,6 +17,8 @@ const skills = [
 const AboutSection = () => {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: '-100px' });
+  const { getSetting, isLoading } = useSiteSettings();
+  const profileImage = getSetting('profile_image');
 
   return (
     <section id="about" className="py-24 md:py-32 relative overflow-hidden">
@@ -47,20 +50,26 @@ const AboutSection = () => {
               
               {/* Main image container */}
               <div className="relative rounded-2xl overflow-hidden border border-primary/30 card-glow">
-                <div className="aspect-square bg-gradient-to-br from-secondary to-card flex items-center justify-center">
-                  <div className="text-center">
-                    <motion.div
-                      className="w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center"
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-                    >
-                      <span className="font-display text-4xl font-bold text-primary-foreground">
-                        O
-                      </span>
-                    </motion.div>
-                    <span className="font-display text-xl text-primary">Okasha Omar</span>
+                {profileImage ? (
+                  <img 
+                    src={profileImage} 
+                    alt="Okasha Omar" 
+                    className="aspect-square w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="aspect-square bg-gradient-to-br from-secondary to-card flex items-center justify-center">
+                    <div className="text-center">
+                      <motion.div
+                        className="w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+                      >
+                        <User className="w-16 h-16 text-primary-foreground" />
+                      </motion.div>
+                      <span className="font-display text-xl text-primary">Upload your photo</span>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Glitch overlay */}
                 <motion.div
