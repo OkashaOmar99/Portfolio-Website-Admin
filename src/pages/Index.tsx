@@ -10,9 +10,18 @@ import SkillsSection from '@/components/SkillsSection';
 import ContactSection from '@/components/ContactSection';
 import Footer from '@/components/Footer';
 import AutomationOracle from '@/components/AutomationOracle';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 const Index = () => {
+    const { getSetting } = useSiteSettings();
+    const siteTitle = getSetting('site_title');
+
   useEffect(() => {
+    // Update document title
+    if (siteTitle) {
+        document.title = siteTitle;
+    }
+
     // Smooth scroll behavior for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       anchor.addEventListener('click', function (e) {

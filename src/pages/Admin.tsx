@@ -62,6 +62,61 @@ const Admin = () => {
   const [uploadingProfileImage, setUploadingProfileImage] = useState(false);
   const profileImage = getSetting('profile_image');
 
+  // Define settings state
+  const [settingsFormData, setSettingsFormData] = useState({
+    owner_name: '',
+    site_title: '',
+    linkedin_url: '',
+    email: '',
+    twitter_url: '',
+    instagram_url: '',
+    facebook_url: '',
+    github_url: '',
+  });
+
+  // Load settings when getSetting returns values
+  useEffect(() => {
+    setSettingsFormData({
+      owner_name: getSetting('owner_name') || '',
+      site_title: getSetting('site_title') || '',
+      linkedin_url: getSetting('linkedin_url') || '',
+      email: getSetting('email') || '',
+      twitter_url: getSetting('twitter_url') || '',
+      instagram_url: getSetting('instagram_url') || '',
+      facebook_url: getSetting('facebook_url') || '',
+      github_url: getSetting('github_url') || '',
+    });
+  }, [getSetting('owner_name'), getSetting('site_title')]); // Depend on a few key settings to trigger reload
+
+  const handleSettingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSettingsFormData({
+      ...settingsFormData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const saveSettings = async () => {
+    try {
+      await Promise.all([
+        updateSetting('owner_name', settingsFormData.owner_name),
+        updateSetting('site_title', settingsFormData.site_title),
+        updateSetting('linkedin_url', settingsFormData.linkedin_url),
+        updateSetting('email', settingsFormData.email),
+        updateSetting('twitter_url', settingsFormData.twitter_url),
+        updateSetting('instagram_url', settingsFormData.instagram_url),
+        updateSetting('facebook_url', settingsFormData.facebook_url),
+        updateSetting('github_url', settingsFormData.github_url),
+      ]);
+      toast({ title: 'Success', description: 'Settings updated!' });
+    } catch (err) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to update settings',
+      });
+    }
+  };
+
   useEffect(() => {
     if (!isLoading && (!user || !isAdmin)) {
       navigate('/admin-login');
@@ -674,7 +729,7 @@ const Admin = () => {
               <h2 className="font-display text-xl font-bold text-foreground mb-6">Site Settings</h2>
               
               {/* Profile Image Upload */}
-              <div className="card-glow rounded-xl p-6 border border-border">
+              <div className="card-glow rounded-xl p-6 border border-border mb-6">
                 <h3 className="font-display font-bold text-foreground mb-4">Profile Image</h3>
                 <p className="text-muted-foreground text-sm mb-4">
                   This image will appear in the About section of your portfolio.
@@ -732,6 +787,118 @@ const Admin = () => {
                   </div>
                 </div>
               </div>
+
+              {/* General Settings */}
+              <div className="card-glow rounded-xl p-6 border border-border mb-6">
+                <h3 className="font-display font-bold text-foreground mb-4">General Information</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Portfolio Owner Name</label>
+                    <input
+                      type="text"
+                      name="owner_name"
+                      value={settingsFormData.owner_name}
+                      onChange={handleSettingChange}
+                      className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground"
+                      placeholder="e.g. Okasha Omar"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Website Title</label>
+                    <input
+                      type="text"
+                      name="site_title"
+                      value={settingsFormData.site_title}
+                      onChange={handleSettingChange}
+                      className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground"
+                      placeholder="e.g. Okasha Omar | N8N Automation Specialist"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Social Links */}
+              <div className="card-glow rounded-xl p-6 border border-border mb-6">
+                <h3 className="font-display font-bold text-foreground mb-4">Contact & Social Links</h3>
+                <div className="space-y-4">
+                   <div>
+                    <label className="block text-sm font-medium mb-2">Email Address</label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={settingsFormData.email}
+                      onChange={handleSettingChange}
+                      className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground"
+                      placeholder="e.g. okasha@example.com"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">LinkedIn URL</label>
+                    <input
+                      type="text"
+                      name="linkedin_url"
+                      value={settingsFormData.linkedin_url}
+                      onChange={handleSettingChange}
+                      className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground"
+                      placeholder="https://linkedin.com/in/..."
+                    />
+                  </div>
+                   <div>
+                    <label className="block text-sm font-medium mb-2">GitHub URL</label>
+                    <input
+                      type="text"
+                      name="github_url"
+                      value={settingsFormData.github_url}
+                      onChange={handleSettingChange}
+                      className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground"
+                      placeholder="https://github.com/..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Twitter/X URL</label>
+                    <input
+                      type="text"
+                      name="twitter_url"
+                      value={settingsFormData.twitter_url}
+                      onChange={handleSettingChange}
+                      className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground"
+                      placeholder="https://twitter.com/..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Instagram URL</label>
+                    <input
+                      type="text"
+                      name="instagram_url"
+                      value={settingsFormData.instagram_url}
+                      onChange={handleSettingChange}
+                      className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground"
+                      placeholder="https://instagram.com/..."
+                    />
+                  </div>
+                   <div>
+                    <label className="block text-sm font-medium mb-2">Facebook URL</label>
+                    <input
+                      type="text"
+                      name="facebook_url"
+                      value={settingsFormData.facebook_url}
+                      onChange={handleSettingChange}
+                      className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground"
+                      placeholder="https://facebook.com/..."
+                    />
+                  </div>
+                  
+                </div>
+              </div>
+
+               <motion.button
+                  onClick={saveSettings}
+                  className="w-full py-3 bg-gradient-to-r from-primary to-accent text-primary-foreground font-display font-bold rounded-lg"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Save Settings
+                </motion.button>
             </div>
           </TabsContent>
         </Tabs>

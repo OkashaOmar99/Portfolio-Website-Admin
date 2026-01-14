@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import ParticleField from './ParticleField';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 const stats = [
   { value: '2+', label: 'Years N8N' },
@@ -9,8 +10,13 @@ const stats = [
 ];
 
 const HeroSection = () => {
-  const firstLine = "OKASHA".split('');
-  const secondLine = "OMAR".split('');
+  const { getSetting } = useSiteSettings();
+  const ownerName = getSetting('owner_name') || "OKASHA OMAR";
+  
+  // Split name into two lines if possible, or just default behavior
+  const nameParts = ownerName.toUpperCase().split(' ');
+  const firstLine = (nameParts[0] || "OKASHA").split('');
+  const secondLine = (nameParts.slice(1).join(' ') || "OMAR").split('');
 
   return (
     <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -20,7 +26,7 @@ const HeroSection = () => {
         <div className="max-w-5xl mx-auto text-center">
           {/* Animated title */}
           <motion.div className="mb-6 overflow-hidden">
-            {/* First line - OKASHA */}
+            {/* First line */}
             <motion.div className="flex justify-center flex-wrap gap-2 md:gap-4 mb-2">
               {firstLine.map((char, index) => (
                 <motion.span
@@ -34,20 +40,30 @@ const HeroSection = () => {
                     ease: [0.6, -0.05, 0.01, 0.99],
                   }}
                 >
-                  {char}
+                  {char === ' ' ? '\u00A0' : char}
                 </motion.span>
               ))}
             </motion.div>
-            {/* Second line - OMAR */}
-            <motion.div className="flex justify-center flex-wrap gap-2 md:gap-4">
-              {secondLine.map((char, index) => (
-                <motion.span
-                  key={index}
-                  className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black text-gradient inline-block"
-                  initial={{ y: 100, opacity: 0, rotateX: -90 }}
-                  animate={{ y: 0, opacity: 1, rotateX: 0 }}
-                  transition={{
-                    duration: 0.8,
+            {/* Second line */}
+            {secondLine.length > 0 && (
+              <motion.div className="flex justify-center flex-wrap gap-2 md:gap-4">
+                {secondLine.map((char, index) => (
+                  <motion.span
+                    key={index}
+                    className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black text-gradient inline-block"
+                    initial={{ y: 100, opacity: 0, rotateX: -90 }}
+                    animate={{ y: 0, opacity: 1, rotateX: 0 }}
+                    transition={{
+                      duration: 0.8,
+                      delay: 0.4 + index * 0.05,
+                      ease: [0.6, -0.05, 0.01, 0.99],
+                    }}
+                  >
+                    {char === ' ' ? '\u00A0' : char}
+                  </motion.span>
+                ))}
+              </motion.div>
+            )}
                     delay: (firstLine.length + index) * 0.05,
                     ease: [0.6, -0.05, 0.01, 0.99],
                   }}
