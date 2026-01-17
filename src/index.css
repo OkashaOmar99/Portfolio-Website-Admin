@@ -67,7 +67,15 @@
 
   body {
     @apply bg-background text-foreground font-sans;
+  }
+
+  /* Hide cursor on non-interactive elements, show on inputs for better UX */
+  body:not(:has(input:focus)):not(:has(textarea:focus)):not(:has(select:focus)) {
     cursor: none;
+  }
+
+  input, textarea, select, [contenteditable="true"] {
+    cursor: auto !important;
   }
 
   ::selection {
