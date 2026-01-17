@@ -130,20 +130,20 @@ const CustomCursor = () => {
       {/* Main cursor */}
       <div
         ref={cursorRef}
-        className="fixed pointer-events-none z-[9999] mix-blend-difference will-change-transform"
+        className="fixed pointer-events-none z-[9999] will-change-transform"
       >
         <div
           className={`rounded-full transition-all duration-150 ${
             isPointer 
-              ? 'w-10 h-10 border-2 border-primary bg-transparent' 
+              ? 'w-10 h-10 border-2 border-white bg-white/10' 
               : isDragging 
-                ? 'w-4 h-4 bg-accent' 
-                : 'w-5 h-5 bg-primary'
+                ? 'w-4 h-4 bg-white' 
+                : 'w-5 h-5 bg-white'
           }`}
           style={{
             boxShadow: isPointer
-              ? '0 0 25px hsl(190 100% 50% / 0.8)'
-              : '0 0 20px hsl(190 100% 50% / 0.6)',
+              ? '0 0 25px rgba(255, 255, 255, 0.8), 0 0 10px hsl(190 100% 50% / 0.8)'
+              : '0 0 20px rgba(255, 255, 255, 0.6), 0 0 10px hsl(190 100% 50% / 0.6)',
           }}
         />
       </div>
