@@ -176,13 +176,13 @@ const PortfolioDetail = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6 }}
-                className="relative rounded-2xl overflow-hidden cursor-pointer"
+                className="relative rounded-2xl overflow-hidden cursor-pointer bg-secondary/30"
                 onClick={() => setIsGalleryOpen(true)}
               >
                 <img
                   src={item.images[currentImageIndex]}
                   alt={`${item.title} - Image ${currentImageIndex + 1}`}
-                  className="w-full aspect-video object-cover"
+                  className="w-full h-auto max-h-[70vh] object-contain mx-auto"
                 />
                 {item.images.length > 1 && (
                   <>
