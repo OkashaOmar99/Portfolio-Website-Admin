@@ -76,8 +76,15 @@ const CustomCursor = () => {
 
     const updateCursorType = (e: MouseEvent) => {
       const hoveredElement = document.elementFromPoint(e.clientX, e.clientY);
-      const isClickable = hoveredElement?.closest('button, a, [role="button"], input, textarea, select, [data-draggable]');
+      const isInput = hoveredElement?.closest('input, textarea, select, [contenteditable="true"]');
+      // Hide custom cursor when over input elements to allow native cursor behavior
+      if (isInput) {
+        setIsHidden(true);
+        return;
+      }
+      const isClickable = hoveredElement?.closest('button, a, [role="button"], [data-draggable]');
       setIsPointer(!!isClickable);
+      setIsHidden(false);
     };
 
     const handleMouseDown = () => setIsDragging(true);
