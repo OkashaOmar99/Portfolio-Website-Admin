@@ -64,14 +64,6 @@ const HeroSection = () => {
                 ))}
               </motion.div>
             )}
-                    delay: (firstLine.length + index) * 0.05,
-                    ease: [0.6, -0.05, 0.01, 0.99],
-                  }}
-                >
-                  {char}
-                </motion.span>
-              ))}
-            </motion.div>
           </motion.div>
 
           {/* Subtitle with typing effect */}
