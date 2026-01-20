@@ -21,7 +21,9 @@ const Index = () => {
     if (siteTitle) {
         document.title = siteTitle;
     }
+  }, [siteTitle]);
 
+  useEffect(() => {
     // Smooth scroll behavior for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       anchor.addEventListener('click', function (e) {
