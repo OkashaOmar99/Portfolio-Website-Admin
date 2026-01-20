@@ -10,18 +10,10 @@ import SkillsSection from '@/components/SkillsSection';
 import ContactSection from '@/components/ContactSection';
 import Footer from '@/components/Footer';
 import AutomationOracle from '@/components/AutomationOracle';
-import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 const Index = () => {
-    const { getSetting } = useSiteSettings();
-    const siteTitle = getSetting('site_title');
 
-  useEffect(() => {
-    // Update document title
-    if (siteTitle) {
-        document.title = siteTitle;
-    }
-  }, [siteTitle]);
+
 
   useEffect(() => {
     // Smooth scroll behavior for anchor links
