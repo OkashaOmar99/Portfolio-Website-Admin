@@ -27,7 +27,7 @@ const Admin = () => {
     title: '',
     description: '',
     techstack: '',
-    metrics: { timeSaved: '', leads: '', roi: '' },
+    metrics: [] as { key: string; value: string }[],
     featured: false,
   });
   const [uploadingImages, setUploadingImages] = useState(false);
@@ -129,7 +129,7 @@ const Admin = () => {
       title: '',
       description: '',
       techstack: '',
-      metrics: { timeSaved: '', leads: '', roi: '' },
+      metrics: [],
       featured: false,
     });
     setImageUrls([]);
@@ -143,7 +143,9 @@ const Admin = () => {
         title: item.title,
         description: item.description,
         techstack: item.techstack.join(', '),
-        metrics: item.metrics,
+        metrics: item.metrics
+          ? Object.entries(item.metrics as Record<string, string>).map(([key, value]) => ({ key, value }))
+          : [],
         featured: item.featured,
       });
       setImageUrls(item.images);
@@ -198,6 +200,11 @@ const Admin = () => {
       .map((t) => t.trim())
       .filter(Boolean);
 
+    const metricsObject = formData.metrics.reduce((acc, curr) => {
+      if (curr.key && curr.value) acc[curr.key] = curr.value;
+      return acc;
+    }, {} as Record<string, string>);
+
     try {
       if (editingItem) {
         await updateItem(editingItem.id, {
@@ -205,7 +212,7 @@ const Admin = () => {
           description: formData.description,
           techstack: techstackArray,
           images: imageUrls,
-          metrics: formData.metrics,
+          metrics: metricsObject,
           featured: formData.featured,
         });
         toast({ title: 'Success', description: 'Portfolio item updated!' });
@@ -215,7 +222,7 @@ const Admin = () => {
           description: formData.description,
           techstack: techstackArray,
           images: imageUrls,
-          metrics: formData.metrics,
+          metrics: metricsObject,
           featured: formData.featured,
           sort_order: items.length + 1,
         });
@@ -727,21 +734,21 @@ const Admin = () => {
           <TabsContent value="settings">
             <div className="max-w-2xl">
               <h2 className="font-display text-xl font-bold text-foreground mb-6">Site Settings</h2>
-              
+
               {/* Profile Image Upload */}
               <div className="card-glow rounded-xl p-6 border border-border mb-6">
                 <h3 className="font-display font-bold text-foreground mb-4">Profile Image</h3>
                 <p className="text-muted-foreground text-sm mb-4">
                   This image will appear in the About section of your portfolio.
                 </p>
-                
+
                 <div className="flex items-start gap-6">
                   {/* Current Image Preview */}
                   <div className="w-40 h-40 rounded-xl border border-border overflow-hidden bg-secondary/50 flex items-center justify-center">
                     {profileImage ? (
-                      <img 
-                        src={profileImage} 
-                        alt="Profile" 
+                      <img
+                        src={profileImage}
+                        alt="Profile"
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -751,7 +758,7 @@ const Admin = () => {
                       </div>
                     )}
                   </div>
-                  
+
                   {/* Upload Controls */}
                   <div className="flex-1 space-y-4">
                     <label className="flex items-center justify-center gap-2 py-4 px-6 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary transition-colors">
@@ -759,15 +766,15 @@ const Admin = () => {
                       <span className="text-muted-foreground">
                         {uploadingProfileImage ? 'Uploading...' : 'Upload new image'}
                       </span>
-                      <input 
-                        type="file" 
-                        accept="image/*" 
-                        onChange={handleProfileImageUpload} 
-                        className="hidden" 
-                        disabled={uploadingProfileImage} 
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleProfileImageUpload}
+                        className="hidden"
+                        disabled={uploadingProfileImage}
                       />
                     </label>
-                    
+
                     {profileImage && (
                       <motion.button
                         type="button"
@@ -780,7 +787,7 @@ const Admin = () => {
                         Remove Image
                       </motion.button>
                     )}
-                    
+
                     <p className="text-xs text-muted-foreground">
                       Recommended: Square image, at least 400x400 pixels. JPG or PNG format.
                     </p>
@@ -821,7 +828,7 @@ const Admin = () => {
               <div className="card-glow rounded-xl p-6 border border-border mb-6">
                 <h3 className="font-display font-bold text-foreground mb-4">Contact & Social Links</h3>
                 <div className="space-y-4">
-                   <div>
+                  <div>
                     <label className="block text-sm font-medium mb-2">Email Address</label>
                     <input
                       type="email"
@@ -843,7 +850,7 @@ const Admin = () => {
                       placeholder="https://linkedin.com/in/..."
                     />
                   </div>
-                   <div>
+                  <div>
                     <label className="block text-sm font-medium mb-2">GitHub URL</label>
                     <input
                       type="text"
@@ -876,7 +883,7 @@ const Admin = () => {
                       placeholder="https://instagram.com/..."
                     />
                   </div>
-                   <div>
+                  <div>
                     <label className="block text-sm font-medium mb-2">Facebook URL</label>
                     <input
                       type="text"
@@ -887,18 +894,18 @@ const Admin = () => {
                       placeholder="https://facebook.com/..."
                     />
                   </div>
-                  
+
                 </div>
               </div>
 
-               <motion.button
-                  onClick={saveSettings}
-                  className="w-full py-3 bg-gradient-to-r from-primary to-accent text-primary-foreground font-display font-bold rounded-lg"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  Save Settings
-                </motion.button>
+              <motion.button
+                onClick={saveSettings}
+                className="w-full py-3 bg-gradient-to-r from-primary to-accent text-primary-foreground font-display font-bold rounded-lg"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Save Settings
+              </motion.button>
             </div>
           </TabsContent>
         </Tabs>
@@ -966,36 +973,66 @@ const Admin = () => {
                   />
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">Time Saved</label>
-                    <input
-                      type="text"
-                      value={formData.metrics.timeSaved}
-                      onChange={(e) => setFormData({ ...formData, metrics: { ...formData.metrics, timeSaved: e.target.value } })}
-                      className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary focus:ring-1 focus:ring-primary outline-none text-foreground"
-                      placeholder="80%"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">Leads/Month</label>
-                    <input
-                      type="text"
-                      value={formData.metrics.leads}
-                      onChange={(e) => setFormData({ ...formData, metrics: { ...formData.metrics, leads: e.target.value } })}
-                      className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary focus:ring-1 focus:ring-primary outline-none text-foreground"
-                      placeholder="500+"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">ROI</label>
-                    <input
-                      type="text"
-                      value={formData.metrics.roi}
-                      onChange={(e) => setFormData({ ...formData, metrics: { ...formData.metrics, roi: e.target.value } })}
-                      className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary focus:ring-1 focus:ring-primary outline-none text-foreground"
-                      placeholder="3x"
-                    />
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Metrics</label>
+                  <div className="space-y-3">
+                    {formData.metrics.map((metric, index) => (
+                      <div key={index} className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="Key (e.g., Time Saved)"
+                          list="metric-suggestions"
+                          className="flex-1 px-4 py-2 rounded-lg bg-secondary/50 border border-border focus:border-primary outline-none"
+                          value={metric.key}
+                          onChange={(e) => {
+                            const newMetrics = [...formData.metrics];
+                            newMetrics[index].key = e.target.value;
+                            setFormData({ ...formData, metrics: newMetrics });
+                          }}
+                        />
+                        <input
+                          type="text"
+                          placeholder="Value (e.g., 50%)"
+                          className="flex-1 px-4 py-2 rounded-lg bg-secondary/50 border border-border focus:border-primary outline-none"
+                          value={metric.value}
+                          onChange={(e) => {
+                            const newMetrics = [...formData.metrics];
+                            newMetrics[index].value = e.target.value;
+                            setFormData({ ...formData, metrics: newMetrics });
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newMetrics = formData.metrics.filter((_, i) => i !== index);
+                            setFormData({ ...formData, metrics: newMetrics });
+                          }}
+                          className="p-2 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, metrics: [...formData.metrics, { key: '', value: '' }] })}
+                      className="text-sm text-primary hover:underline flex items-center gap-1"
+                    >
+                      <Plus size={14} /> Add Metric
+                    </button>
+
+                    <datalist id="metric-suggestions">
+                      <option value="Time Saved" />
+                      <option value="Leads Generated" />
+                      <option value="ROI" />
+                      <option value="Revenue Increase" />
+                      <option value="Cost Reduction" />
+                      <option value="Process Efficiency" />
+                      <option value="Tasks Automated" />
+                      <option value="Error Rate Reduction" />
+                      <option value="Conversion Rate" />
+                      <option value="Customer Satisfaction" />
+                    </datalist>
                   </div>
                 </div>
 
@@ -1044,227 +1081,232 @@ const Admin = () => {
               </form>
             </motion.div>
           </motion.div>
-        )}
-      </AnimatePresence>
+        )
+        }
+      </AnimatePresence >
 
       {/* Skill Modal */}
       <AnimatePresence>
-        {isSkillModalOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm"
-            onClick={() => setIsSkillModalOpen(false)}
-          >
+        {
+          isSkillModalOpen && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="w-full max-w-md bg-card rounded-2xl border border-border shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm"
+              onClick={() => setIsSkillModalOpen(false)}
             >
-              <div className="p-6 border-b border-border flex items-center justify-between">
-                <h2 className="font-display text-xl font-bold">{editingSkill ? 'Edit Skill' : 'Add Skill'}</h2>
-                <button onClick={() => setIsSkillModalOpen(false)} className="p-2 rounded-lg hover:bg-secondary/50">
-                  <X size={20} />
-                </button>
-              </div>
-
-              <form onSubmit={handleSkillSubmit} className="p-6 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Category</label>
-                  <input
-                    type="text"
-                    value={skillFormData.category}
-                    onChange={(e) => setSkillFormData({ ...skillFormData, category: e.target.value })}
-                    className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground"
-                    placeholder="Automation Tools"
-                    list="categories"
-                    required
-                  />
-                  <datalist id="categories">
-                    {categories.map((cat) => (
-                      <option key={cat} value={cat} />
-                    ))}
-                  </datalist>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="w-full max-w-md bg-card rounded-2xl border border-border shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="p-6 border-b border-border flex items-center justify-between">
+                  <h2 className="font-display text-xl font-bold">{editingSkill ? 'Edit Skill' : 'Add Skill'}</h2>
+                  <button onClick={() => setIsSkillModalOpen(false)} className="p-2 rounded-lg hover:bg-secondary/50">
+                    <X size={20} />
+                  </button>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium mb-2">Name</label>
-                  <input
-                    type="text"
-                    value={skillFormData.name}
-                    onChange={(e) => setSkillFormData({ ...skillFormData, name: e.target.value })}
-                    className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground"
-                    placeholder="N8N"
-                    required
-                  />
-                </div>
+                <form onSubmit={handleSkillSubmit} className="p-6 space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Category</label>
+                    <input
+                      type="text"
+                      value={skillFormData.category}
+                      onChange={(e) => setSkillFormData({ ...skillFormData, category: e.target.value })}
+                      className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground"
+                      placeholder="Automation Tools"
+                      list="categories"
+                      required
+                    />
+                    <datalist id="categories">
+                      {categories.map((cat) => (
+                        <option key={cat} value={cat} />
+                      ))}
+                    </datalist>
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium mb-2">Level ({skillFormData.level}%)</label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={skillFormData.level}
-                    onChange={(e) => setSkillFormData({ ...skillFormData, level: parseInt(e.target.value) })}
-                    className="w-full accent-primary"
-                  />
-                </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Name</label>
+                    <input
+                      type="text"
+                      value={skillFormData.name}
+                      onChange={(e) => setSkillFormData({ ...skillFormData, name: e.target.value })}
+                      className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground"
+                      placeholder="N8N"
+                      required
+                    />
+                  </div>
 
-                <motion.button
-                  type="submit"
-                  className="w-full py-3 bg-gradient-to-r from-primary to-accent text-primary-foreground font-display font-bold rounded-lg"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  {editingSkill ? 'Update Skill' : 'Create Skill'}
-                </motion.button>
-              </form>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Level ({skillFormData.level}%)</label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={skillFormData.level}
+                      onChange={(e) => setSkillFormData({ ...skillFormData, level: parseInt(e.target.value) })}
+                      className="w-full accent-primary"
+                    />
+                  </div>
+
+                  <motion.button
+                    type="submit"
+                    className="w-full py-3 bg-gradient-to-r from-primary to-accent text-primary-foreground font-display font-bold rounded-lg"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    {editingSkill ? 'Update Skill' : 'Create Skill'}
+                  </motion.button>
+                </form>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )
+        }
+      </AnimatePresence >
 
       {/* Experience Modal */}
       <AnimatePresence>
-        {isExpModalOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm"
-            onClick={() => setIsExpModalOpen(false)}
-          >
+        {
+          isExpModalOpen && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-card rounded-2xl border border-border shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm"
+              onClick={() => setIsExpModalOpen(false)}
             >
-              <div className="p-6 border-b border-border flex items-center justify-between">
-                <h2 className="font-display text-xl font-bold">{editingExp ? 'Edit Experience' : 'Add Experience'}</h2>
-                <button onClick={() => setIsExpModalOpen(false)} className="p-2 rounded-lg hover:bg-secondary/50">
-                  <X size={20} />
-                </button>
-              </div>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-card rounded-2xl border border-border shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="p-6 border-b border-border flex items-center justify-between">
+                  <h2 className="font-display text-xl font-bold">{editingExp ? 'Edit Experience' : 'Add Experience'}</h2>
+                  <button onClick={() => setIsExpModalOpen(false)} className="p-2 rounded-lg hover:bg-secondary/50">
+                    <X size={20} />
+                  </button>
+                </div>
 
-              <form onSubmit={handleExpSubmit} className="p-6 space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <form onSubmit={handleExpSubmit} className="p-6 space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Title</label>
+                      <input
+                        type="text"
+                        value={expFormData.title}
+                        onChange={(e) => setExpFormData({ ...expFormData, title: e.target.value })}
+                        className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground"
+                        placeholder="Team Lead Manager"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Company</label>
+                      <input
+                        type="text"
+                        value={expFormData.company}
+                        onChange={(e) => setExpFormData({ ...expFormData, company: e.target.value })}
+                        className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground"
+                        placeholder="Alqaim Technology"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Period</label>
+                      <input
+                        type="text"
+                        value={expFormData.period}
+                        onChange={(e) => setExpFormData({ ...expFormData, period: e.target.value })}
+                        className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground"
+                        placeholder="Jun 2024 - Present"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Duration</label>
+                      <input
+                        type="text"
+                        value={expFormData.duration}
+                        onChange={(e) => setExpFormData({ ...expFormData, duration: e.target.value })}
+                        className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground"
+                        placeholder="8 months"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Location</label>
+                      <input
+                        type="text"
+                        value={expFormData.location}
+                        onChange={(e) => setExpFormData({ ...expFormData, location: e.target.value })}
+                        className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground"
+                        placeholder="Punjab, Pakistan"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Type</label>
+                      <select
+                        value={expFormData.type}
+                        onChange={(e) => setExpFormData({ ...expFormData, type: e.target.value })}
+                        className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground"
+                      >
+                        <option value="Hybrid">Hybrid</option>
+                        <option value="Remote">Remote</option>
+                        <option value="On-site">On-site</option>
+                      </select>
+                    </div>
+                  </div>
+
                   <div>
-                    <label className="block text-sm font-medium mb-2">Title</label>
-                    <input
-                      type="text"
-                      value={expFormData.title}
-                      onChange={(e) => setExpFormData({ ...expFormData, title: e.target.value })}
-                      className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground"
-                      placeholder="Team Lead Manager"
+                    <label className="block text-sm font-medium mb-2">Description</label>
+                    <textarea
+                      value={expFormData.description}
+                      onChange={(e) => setExpFormData({ ...expFormData, description: e.target.value })}
+                      rows={3}
+                      className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground resize-none"
+                      placeholder="Describe your role..."
                       required
                     />
                   </div>
+
                   <div>
-                    <label className="block text-sm font-medium mb-2">Company</label>
+                    <label className="block text-sm font-medium mb-2">Skills (comma-separated)</label>
                     <input
                       type="text"
-                      value={expFormData.company}
-                      onChange={(e) => setExpFormData({ ...expFormData, company: e.target.value })}
+                      value={expFormData.skills}
+                      onChange={(e) => setExpFormData({ ...expFormData, skills: e.target.value })}
                       className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground"
-                      placeholder="Alqaim Technology"
-                      required
+                      placeholder="Sales, CRM, Automation"
                     />
                   </div>
-                </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Period</label>
-                    <input
-                      type="text"
-                      value={expFormData.period}
-                      onChange={(e) => setExpFormData({ ...expFormData, period: e.target.value })}
-                      className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground"
-                      placeholder="Jun 2024 - Present"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Duration</label>
-                    <input
-                      type="text"
-                      value={expFormData.duration}
-                      onChange={(e) => setExpFormData({ ...expFormData, duration: e.target.value })}
-                      className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground"
-                      placeholder="8 months"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Location</label>
-                    <input
-                      type="text"
-                      value={expFormData.location}
-                      onChange={(e) => setExpFormData({ ...expFormData, location: e.target.value })}
-                      className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground"
-                      placeholder="Punjab, Pakistan"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Type</label>
-                    <select
-                      value={expFormData.type}
-                      onChange={(e) => setExpFormData({ ...expFormData, type: e.target.value })}
-                      className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground"
-                    >
-                      <option value="Hybrid">Hybrid</option>
-                      <option value="Remote">Remote</option>
-                      <option value="On-site">On-site</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Description</label>
-                  <textarea
-                    value={expFormData.description}
-                    onChange={(e) => setExpFormData({ ...expFormData, description: e.target.value })}
-                    rows={3}
-                    className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground resize-none"
-                    placeholder="Describe your role..."
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Skills (comma-separated)</label>
-                  <input
-                    type="text"
-                    value={expFormData.skills}
-                    onChange={(e) => setExpFormData({ ...expFormData, skills: e.target.value })}
-                    className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg focus:border-primary outline-none text-foreground"
-                    placeholder="Sales, CRM, Automation"
-                  />
-                </div>
-
-                <motion.button
-                  type="submit"
-                  className="w-full py-3 bg-gradient-to-r from-primary to-accent text-primary-foreground font-display font-bold rounded-lg"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  {editingExp ? 'Update Experience' : 'Create Experience'}
-                </motion.button>
-              </form>
+                  <motion.button
+                    type="submit"
+                    className="w-full py-3 bg-gradient-to-r from-primary to-accent text-primary-foreground font-display font-bold rounded-lg"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    {editingExp ? 'Update Experience' : 'Create Experience'}
+                  </motion.button>
+                </form>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+          )
+        }
+      </AnimatePresence >
+    </div >
   );
 };
 

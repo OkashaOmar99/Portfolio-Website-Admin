@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 const navItems = [
   { label: 'Home', href: '#hero' },
@@ -14,6 +15,7 @@ const navItems = [
 ];
 
 const Navigation = () => {
+  const { getSetting } = useSiteSettings();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('hero');
@@ -45,11 +47,10 @@ const Navigation = () => {
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isScrolled
-            ? 'bg-background/80 backdrop-blur-xl border-b border-border'
-            : 'bg-transparent'
-        }`}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
+          ? 'bg-background/80 backdrop-blur-xl border-b border-border'
+          : 'bg-transparent'
+          }`}
       >
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
@@ -60,7 +61,7 @@ const Navigation = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              OKASHA
+              {getSetting('owner_name')?.split(' ')[0].toUpperCase() || 'OKASHA'}
             </motion.a>
 
             {/* Desktop Navigation */}
@@ -69,9 +70,8 @@ const Navigation = () => {
                 <motion.a
                   key={item.href}
                   href={item.href}
-                  className={`nav-link text-sm font-medium ${
-                    activeSection === item.href.slice(1) ? 'text-primary' : ''
-                  }`}
+                  className={`nav-link text-sm font-medium ${activeSection === item.href.slice(1) ? 'text-primary' : ''
+                    }`}
                   whileHover={{ y: -2 }}
                   whileTap={{ y: 0 }}
                 >

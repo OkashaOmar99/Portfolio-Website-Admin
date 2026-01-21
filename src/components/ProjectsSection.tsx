@@ -13,6 +13,7 @@ const staticProjects = [
     metrics: { timeSaved: '85%', leads: '500+', roi: '4x' },
     tags: ['N8N', 'VAPI', 'Elevenlabs'],
     gradient: 'from-primary to-cyan-400',
+    images: [] as string[],
   },
   {
     title: 'Retell AI Sales Agent',
@@ -21,6 +22,7 @@ const staticProjects = [
     metrics: { timeSaved: '90%', leads: '1000+', roi: '6x' },
     tags: ['Retell', 'GoHighLevel', 'Python'],
     gradient: 'from-orange-500 to-accent',
+    images: [] as string[],
   },
   {
     title: 'Database Automation Suite',
@@ -29,6 +31,7 @@ const staticProjects = [
     metrics: { timeSaved: '70%', leads: '300+', roi: '5x' },
     tags: ['Supabase', 'Postgres', 'N8N'],
     gradient: 'from-accent to-emerald-400',
+    images: [] as string[],
   },
   {
     title: 'Make.com Marketing Hub',
@@ -37,6 +40,7 @@ const staticProjects = [
     metrics: { timeSaved: '75%', leads: '800+', roi: '7x' },
     tags: ['Make.com', 'Python', 'GoHighLevel'],
     gradient: 'from-purple-500 to-primary',
+    images: [] as string[],
   },
 ];
 
@@ -54,12 +58,12 @@ const ProjectsSection = () => {
   const { items: dynamicItems, isLoading } = usePortfolioItems();
 
   // Merge dynamic items with static projects, prioritizing dynamic
-  const projects = dynamicItems.length > 0 
+  const projects = dynamicItems.length > 0
     ? dynamicItems.map((item, index) => ({
-        ...item,
-        tags: item.techstack,
-        gradient: gradients[index % gradients.length],
-      }))
+      ...item,
+      tags: item.techstack,
+      gradient: gradients[index % gradients.length],
+    }))
     : staticProjects;
 
   return (
@@ -95,13 +99,25 @@ const ProjectsSection = () => {
             >
               <Link to={`/portfolio/${project.slug}`} className="block">
                 <div className="relative h-full rounded-2xl overflow-hidden border border-border hover:border-primary/50 transition-all duration-500">
-                  {/* Gradient background */}
+                  {/* Image Background */}
+                  {project.images && project.images[0] ? (
+                    <>
+                      <img
+                        src={project.images[0]}
+                        alt={project.title}
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-background/90 group-hover:bg-background/80 transition-colors duration-500" />
+                    </>
+                  ) : null}
+
+                  {/* Gradient background overlay */}
                   <div
                     className={`absolute inset-0 opacity-10 bg-gradient-to-br ${project.gradient}`}
                   />
 
                   {/* Content */}
-                  <div className="relative p-8 card-glow h-full">
+                  <div className="relative p-8 card-glow h-full flex flex-col">
                     {/* Header */}
                     <div className="flex items-start justify-between mb-6">
                       <h3 className="font-display text-2xl font-bold text-foreground group-hover:text-primary transition-colors">
@@ -109,34 +125,30 @@ const ProjectsSection = () => {
                       </h3>
                       <motion.div
                         whileHover={{ scale: 1.1, rotate: 15 }}
-                        className="p-2 rounded-lg bg-primary/10 text-primary"
+                        className="p-2 rounded-lg bg-primary/10 text-primary backdrop-blur-sm"
                       >
                         <ExternalLink className="w-5 h-5" />
                       </motion.div>
                     </div>
 
-                    <p className="text-muted-foreground mb-6 leading-relaxed">
+                    <p className="text-muted-foreground mb-6 leading-relaxed flex-grow">
                       {project.description}
                     </p>
 
                     {/* Metrics */}
-                    <div className="grid grid-cols-3 gap-4 mb-6">
-                      <div className="text-center p-3 rounded-lg bg-background/50">
-                        <Clock className="w-5 h-5 text-primary mx-auto mb-1" />
-                        <div className="font-display font-bold text-primary">{project.metrics.timeSaved}</div>
-                        <div className="text-xs text-muted-foreground">Time Saved</div>
+                    {project.metrics && Object.keys(project.metrics).length > 0 && (
+                      <div className="grid grid-cols-3 gap-4 mb-6">
+                        {Object.entries(project.metrics as Record<string, string>).slice(0, 3).map(([key, value], i) => (
+                          <div key={key} className="text-center p-3 rounded-lg bg-background/50 backdrop-blur-sm border border-border/50">
+                            {i === 0 && <Clock className="w-5 h-5 text-primary mx-auto mb-1" />}
+                            {i === 1 && <TrendingUp className="w-5 h-5 text-accent mx-auto mb-1" />}
+                            {i === 2 && <Zap className="w-5 h-5 text-primary mx-auto mb-1" />}
+                            <div className="font-display font-bold text-foreground">{value}</div>
+                            <div className="text-xs text-muted-foreground capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</div>
+                          </div>
+                        ))}
                       </div>
-                      <div className="text-center p-3 rounded-lg bg-background/50">
-                        <TrendingUp className="w-5 h-5 text-accent mx-auto mb-1" />
-                        <div className="font-display font-bold text-accent">{project.metrics.leads}</div>
-                        <div className="text-xs text-muted-foreground">Leads/Month</div>
-                      </div>
-                      <div className="text-center p-3 rounded-lg bg-background/50">
-                        <Zap className="w-5 h-5 text-primary mx-auto mb-1" />
-                        <div className="font-display font-bold text-primary">{project.metrics.roi}</div>
-                        <div className="text-xs text-muted-foreground">ROI</div>
-                      </div>
-                    </div>
+                    )}
 
                     {/* Tags */}
                     <div className="flex flex-wrap gap-2">

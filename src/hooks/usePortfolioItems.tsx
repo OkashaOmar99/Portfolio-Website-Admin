@@ -8,11 +8,7 @@ export interface PortfolioItem {
   description: string;
   techstack: string[];
   images: string[];
-  metrics: {
-    timeSaved: string;
-    leads: string;
-    roi: string;
-  };
+  metrics: Record<string, string> | null;
   featured: boolean;
   sort_order: number;
   created_at: string;
@@ -33,13 +29,13 @@ export const usePortfolioItems = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      
+
       // Transform the data to ensure proper typing
       const transformedData = (data || []).map(item => ({
         ...item,
-        metrics: item.metrics as PortfolioItem['metrics']
+        metrics: item.metrics ? (item.metrics as Record<string, string>) : null
       }));
-      
+
       setItems(transformedData);
     } catch (err) {
       setError(err as Error);
@@ -87,7 +83,7 @@ export const usePortfolioItems = () => {
       .insert({ ...item, slug })
       .select()
       .single();
-    
+
     if (error) throw error;
     return data;
   };
@@ -97,14 +93,14 @@ export const usePortfolioItems = () => {
     if (updates.title) {
       updateData.slug = generateSlug(updates.title);
     }
-    
+
     const { data, error } = await supabase
       .from('portfolio_items')
       .update(updateData)
       .eq('id', id)
       .select()
       .single();
-    
+
     if (error) throw error;
     return data;
   };
@@ -114,7 +110,7 @@ export const usePortfolioItems = () => {
       .from('portfolio_items')
       .delete()
       .eq('id', id);
-    
+
     if (error) throw error;
   };
 

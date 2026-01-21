@@ -31,15 +31,46 @@ export const useSiteSettings = () => {
 
   const updateSettingMutation = useMutation({
     mutationFn: async ({ key, value }: { key: string; value: string | null }) => {
-      const { data, error } = await supabase
+      // First, check if the setting exists
+      const { data: existing } = await supabase
         .from('site_settings')
-        .update({ value })
+        .select('id')
         .eq('key', key)
-        .select()
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
-      return data;
+      if (existing) {
+        // Update existing setting
+        const { data, error } = await supabase
+          .from('site_settings')
+          .update({ value, updated_at: new Date().toISOString() })
+          .eq('key', key)
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Failed to update setting:', key, error);
+          throw error;
+        }
+        return data;
+      } else {
+        // Insert new setting
+        const { data, error } = await supabase
+          .from('site_settings')
+          .insert({
+            key,
+            value,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Failed to insert setting:', key, error);
+          throw error;
+        }
+        return data;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['site-settings'] });
